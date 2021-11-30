@@ -73,9 +73,12 @@ namespace TileGame
             {
                 if (entityDetails[i] != null)
                 {
+                    g.Components.Remove(entityDetails[i]);
                     entityDetails[i].Dispose();
+                    entityDetails[i] = null;
                 }
                 entityDetails[i] = new Entity(g, GetEntityStatus(page + i));
+                g.Components.Add(entityDetails[i]);
             }
         }
         public class EntityAnimationStatus
@@ -127,7 +130,7 @@ namespace TileGame
         }
         public override void Update(GameTime gameTime)
         {
-            if (g.gameState == Game1.GameState.entityMode)
+            if (g.gameState == Game1.GameState.entityMode || g.gameState == Game1.GameState.entityPlantMode)
             {
                 base.Update(gameTime);
                 isHidden = false;
@@ -151,7 +154,10 @@ namespace TileGame
                     for(int i = 0; i < entityDetails.Length; i++)
                     {
                         if (entityDetails[i] != null)
+                        {
                             entityDetails[i].Dispose();
+                            entityDetails[i] = null;
+                        }
                     }
                 }
             }

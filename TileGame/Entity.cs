@@ -10,14 +10,14 @@ namespace TileGame
     {
         public const int TotalEntity = 4;
         public EntityDetails entityDetails;
-        private double frameElapsedTime, frameTimeStep;
+        private double frameElapsedTime;
+        public const double frameTimeStep = 1000 / 8f;
         private int currentFrame = 0, totalFrame;
         private bool isForward = true;
 
         public Entity (Game1 g,  EntityTable.EntityAnimationStatus status): base(g)
         {
             totalFrame = status.totalFrame;
-            frameTimeStep = 1000 / 8f;
             entityDetails = new EntityDetails(g, status);
         }
 

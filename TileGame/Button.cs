@@ -72,6 +72,29 @@ namespace TileGame
                 else if (name == "ToCharacterMode")
                 {
                     g.SetButtonActive(Game1.GameState.characterMode, name);
+                    g.characterTable.SetCharacterPage(g.characterTable.page);
+                }
+                else if (name == "ToCharacterUpButton")
+                {
+                    if (g.characterTable.page - 1 > -1)
+                    {
+                        g.characterTable.page -= 1;
+                        g.characterTable.SetCharacterPage(g.characterTable.page);
+                    }
+                    isActive = true;
+                }
+                else if (name == "ToCharacterDownButton")
+                {
+                    if (g.characterTable.page + 1 < Character.totalCharacter - 3)
+                    {
+                        g.characterTable.page += 1;
+                        g.characterTable.SetCharacterPage(g.characterTable.page);
+                    }
+                    isActive = true;
+                }
+                else if (name == "ToCharacterRemoveMode")
+                {
+                    g.SetButtonActive(Game1.GameState.characterRemoveMode, name);
                 }
             }
         }

@@ -16,6 +16,7 @@ namespace TileGame
         public float size;
         private Game1 g;
         public List<EntityData> entityData { get; set; }
+        public List<CharacterData> characterData { get; set; }
         public class EntityData
         {
             public int ID { get; set; }
@@ -28,6 +29,20 @@ namespace TileGame
             }
             public EntityData() { }
         }
+        public class CharacterData
+        {
+            public int ID { get; set; }
+            public float x { get; set; }
+            public float y { get; set; }
+            public CharacterData(int ID, float x, float y)
+            {
+                this.ID = ID;
+                this.x = x;
+                this.y = y;
+
+            }
+            public CharacterData() { }
+        }
         public TileMap(Game1 g , int x, int y, string mapName)
         {
             this.x = x;
@@ -36,6 +51,7 @@ namespace TileGame
             this.g = g;
             size = g.tileCostumes[0].Width;
             entityData = new List<EntityData>();
+            characterData = new List<CharacterData>();
             if (System.IO.File.Exists(mapName + ".txt"))
             {
                 mapState = MapState.defined;
@@ -52,6 +68,10 @@ namespace TileGame
                     if (map.entityData != null)
                     {
                         entityData = map.entityData;
+                    }
+                    if(map.characterData != null)
+                    {
+                        characterData = map.characterData;
                     }
                 }
             }

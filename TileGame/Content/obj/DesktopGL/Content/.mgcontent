@@ -6,6 +6,7 @@
   <SourceFiles>
     <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/BasicFont.spritefont</File>
     <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Characters/coin.png</File>
+    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Characters/person1.png</File>
     <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Characters/portal1.png</File>
     <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/GameEntities/grass.png</File>
     <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/GameEntities/shroom1.png</File>
@@ -24,6 +25,7 @@
     <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Tiles/waterTopRight.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

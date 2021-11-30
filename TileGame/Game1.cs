@@ -26,17 +26,19 @@ namespace TileGame
         private bool clicked, isWithinMap;
         public List<Button> UIButtons = new List<Button>();
         private Rectangle mapRect;
-        public enum GameState { tileMode, hitboxMode, playMode, entityMode, entityRemoveMode, entityPlantMode, characterMode};
+        public enum GameState { tileMode, hitboxMode, playMode, entityMode, entityRemoveMode, entityPlantMode, characterMode, characterPlantMode, characterRemoveMode};
         public GameState gameState;
         public delegate void ClickAction();
         public static event ClickAction OnClick;
 
         public EntityTable entityTable;
-        private int index, plantingEntityID;
+        private int index, plantingEntityID, plantCharacterID;
         private Entity plantingEntity;
+        private Character plantingCharacter;
         public List<Entity> mapEntities = new List<Entity>();
 
         public CharacterTable characterTable;
+        public List<Character.CharacterBehaviour> mapCharacters = new List<Character.CharacterBehaviour>();
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -69,6 +71,8 @@ namespace TileGame
             Components.Add(UIButtons[4]);
             UIButtons.Add(new Button(this, "ToCharacterMode", "To Character Mode", new Vector2(5, 210)));
             Components.Add(UIButtons[5]);
+            UIButtons.Add(new Button(this, "ToCharacterRemoveMode", "To Character Remove Mode", new Vector2(5, 250)));
+            Components.Add(UIButtons[6]);
 
             entityTable = new EntityTable(this);
             Components.Add(entityTable);
@@ -129,6 +133,11 @@ namespace TileGame
         private void SetMapOffset()
         {
             LoadMapEntity();
+            for(int i = 0; i < currentMap.characterData.Count; i++)
+            {
+                mapCharacters.Add(new Character.CharacterBehaviour(this, currentMap.characterData[i].ID, new Vector2(currentMap.characterData[i].x, currentMap.characterData[i].y)));
+                Components.Add(mapCharacters[mapCharacters.Count - 1]);
+            }
             mapOffset = new Vector2(GraphicsDevice.Viewport.Width * 0.5f - currentMap.x * currentMap.size * 0.5f, GraphicsDevice.Viewport.Height * 0.5f - currentMap.y * currentMap.size * 0.5f);
             mapOffset.X = MathF.Round(mapOffset.X / currentMap.size) * currentMap.size;
             mapOffset.Y = MathF.Round(mapOffset.Y / currentMap.size) * currentMap.size;
@@ -178,6 +187,10 @@ namespace TileGame
             }
             LastMouseButtonState = ms.LeftButton;
 
+            if (gameState == GameState.characterPlantMode)
+            {
+                plantingCharacter.position = mouseGridPosition;
+            }
             if (isWithinMap)
             {
                 index = currentMap.GetTileIndexFromPosition(mouseGridPosition.X, mouseGridPosition.Y, mapOffset.X, mapOffset.Y);
@@ -206,6 +219,20 @@ namespace TileGame
                         currentMap.hitbox[index] = (currentMap.hitbox[index] + 1) % 2;
                     }
                 }
+                else if (gameState == GameState.characterPlantMode)
+                {
+                    if (clicked && index < currentMap.tileCostume.Count && index > -1)
+                    {
+                        Components.Remove(plantingCharacter);
+                        currentMap.characterData.Add(new TileMap.CharacterData(plantingCharacter.ID, plantingCharacter.position.X, plantingCharacter.position.Y));
+                        plantingCharacter.Dispose();
+                        mapCharacters.Add(new Character.CharacterBehaviour(this, plantingCharacter.ID, plantingCharacter.position));
+                        Components.Add(mapCharacters[mapCharacters.Count - 1]);
+                        plantingCharacter = null;
+                        SetButtonActive(GameState.characterMode, "ToCharacterModeButton");
+                        characterTable.SetCharacterPage(characterTable.page);
+                    }
+                }
             }
 
             base.Update(gameTime);
@@ -230,7 +257,7 @@ namespace TileGame
                 {
                     UIButtons[i].isActive = true;
                 }
-                if (gameState == GameState.entityPlantMode)
+                if (gameState == GameState.entityPlantMode || gameState == GameState.characterPlantMode)
                 {
                     UIButtons[i].isHidden = true;
                 }
@@ -272,6 +299,16 @@ namespace TileGame
             }
             plantingEntity = new Entity(this, EntityTable.GetEntityStatus(plantingEntityID));
             plantingEntity.entityDetails.entityWholeTexture = Content.Load<Texture2D>("GameEntities\\" + plantingEntity.entityDetails.fileName);
+        }
+        public void PlantCharacterOnTileMap(int plantCharacterIndex)
+        {
+            plantCharacterID = plantCharacterIndex;
+            if (plantingCharacter != null)
+            {
+                plantingCharacter.Dispose();
+            }
+            plantingCharacter = new Character(this, plantCharacterIndex, mousePosition);
+            Components.Add(plantingCharacter);
         }
         private int FindIndexWithNameInList(string name , ref List<Entity> entities)
         {
@@ -343,7 +380,7 @@ namespace TileGame
             }
             if (isWithinMap)
             {
-                if (gameState == GameState.tileMode || gameState == GameState.hitboxMode || gameState == GameState.entityPlantMode)
+                if (gameState == GameState.tileMode || gameState == GameState.hitboxMode)
                 {
                     _spriteBatch.Draw(selectGrid, mouseGridPosition, Color.White);
                 }
@@ -357,7 +394,9 @@ namespace TileGame
                         {
                             LoadMapEntity();
                         }
+                        Components.Remove(plantingCharacter);
                         plantingEntity.Dispose();
+                        plantingEntity = null;
                         SetButtonActive(GameState.entityMode, "ToEntityModeButton");
                     }
                 }
