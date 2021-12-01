@@ -13,26 +13,26 @@ namespace TileGame
     {
         private GraphicsDeviceManager _graphics;
         private SpriteBatch _spriteBatch;
-        private TileMap currentMap;
+        public TileMap currentMap;
 
         public Texture2D[] tileCostumes;
         private int totalTile = 10, storingTileID;
 
         private Texture2D selectGrid, whiteRectangle;
-        private Vector2 mouseGridPosition, mapOffset;
+        public Vector2 mouseGridPosition, mapOffset;
         public Vector2 mousePosition;
         private ButtonState LastMouseButtonState = ButtonState.Released;
 
         private bool clicked, isWithinMap;
         public List<Button> UIButtons = new List<Button>();
-        private Rectangle mapRect;
+        public Rectangle mapRect;
         public enum GameState { tileMode, hitboxMode, playMode, entityMode, entityRemoveMode, entityPlantMode, characterMode, characterPlantMode, characterRemoveMode};
         public GameState gameState;
         public delegate void ClickAction();
         public static event ClickAction OnClick;
 
         public EntityTable entityTable;
-        private int index, plantingEntityID, plantCharacterID;
+        private int index, plantingEntityID;
         private Entity plantingEntity;
         private Character plantingCharacter;
         public List<Entity> mapEntities = new List<Entity>();
@@ -82,7 +82,7 @@ namespace TileGame
             characterTable = new CharacterTable(this);
             Components.Add(characterTable);
 
-            player = new Player(this, Vector2.Zero);
+            player = new Player(this, new Vector2(GraphicsDevice.Viewport.Width * 0.5f, GraphicsDevice.Viewport.Height * 0.4f));
             Components.Add(player);
 
             SetButtonActive(gameState, UIButtons[1].name);
@@ -167,8 +167,7 @@ namespace TileGame
             KeyboardState ks = Keyboard.GetState();
             mousePosition.X = ms.X;
             mousePosition.Y = ms.Y;
-            mouseGridPosition.X = MathF.Round(ms.X / currentMap.size) * currentMap.size;
-            mouseGridPosition.Y = MathF.Round(ms.Y / currentMap.size) * currentMap.size;
+            mouseGridPosition = TileMap.ToGrid(mousePosition, currentMap.size);
 
             if (IsWithinRectangle(mouseGridPosition, mapRect))
             {
@@ -307,7 +306,6 @@ namespace TileGame
         }
         public void PlantCharacterOnTileMap(int plantCharacterIndex)
         {
-            plantCharacterID = plantCharacterIndex;
             if (plantingCharacter != null)
             {
                 plantingCharacter.Dispose();

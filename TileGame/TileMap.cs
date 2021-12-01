@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using Microsoft.Xna.Framework;
 
 namespace TileGame
 {
@@ -85,6 +86,11 @@ namespace TileGame
         // For Json Deserialization
         public TileMap() { }
 
+        public static Vector2 ToGrid(Vector2 position, float size)
+        {
+            return new Vector2 (MathF.Round(position.X / size) * size, MathF.Round(position.Y / size) * size);
+        }
+
         public int GetTileX(int index)
         {
             return index % x;
@@ -94,11 +100,11 @@ namespace TileGame
         {
             return (int)MathF.Floor(index / x);
         }
-        public int GetTileIndexFromPosition(float x, float y, float offsetX, float offsetY)
+        public int GetTileIndexFromPosition(float xPos, float yPos, float offsetX, float offsetY)
         {
-            int xIndex = (int)((x - offsetX) / size);
-            int yIndex = (int)((y - offsetY) / size);
-            return yIndex * this.x + xIndex;
+            int xIndex = (int)((xPos - offsetX) / size);
+            int yIndex = (int)((yPos - offsetY) / size);
+            return yIndex * x + xIndex;
         }
         public int GetTileIndexFromNormalizedPosition(float x, float y)
         {

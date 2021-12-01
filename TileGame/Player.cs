@@ -5,20 +5,23 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Diagnostics;
+using System.Threading.Tasks;
+
 namespace TileGame
 {
     class Player: DrawableGameComponent
     {
         private Game1 g;
         private Texture2D texture;
-        private Vector2 position, center;
+        private Vector2 position, center, pointDirection, gridPosition, velocity;
         private float speed = 3f;
         private SpriteBatch spriteBatch;
+        private KeyboardState lastKeyboardState;
 
         private Rectangle frameRect;
         private double frameElapsedTime;
-        private bool isForward = true, isPointRight;
-        private int currentFrame, poseStartFrame, poseEndFrame, totalFrame;
+        private bool isForward = true;
+        private int currentFrame, poseStartFrame, poseEndFrame, totalFrame, gridIndex;
         public Character.AnimationType currentAnimation, lastAnimation;
         public Character.CharacterAnimation[] allAnimations;
 
@@ -26,7 +29,7 @@ namespace TileGame
         {
             this.g = g;
             this.position = position;
-
+            
             currentAnimation = Character.AnimationType.idle;
             lastAnimation = Character.AnimationType.idle;
             allAnimations = new Character.CharacterAnimation[3];
@@ -74,8 +77,36 @@ namespace TileGame
             base.LoadContent();
             spriteBatch = new SpriteBatch(GraphicsDevice);
         }
-
-        public override void Update(GameTime gameTime)
+        private async Task DoAnimation(Character.AnimationType animation, GameTime gameTime)
+        {
+            SetFrameDetails(animation);
+            lastAnimation = currentAnimation;
+            currentFrame = poseStartFrame;
+            isForward = true;
+            while (currentFrame < poseEndFrame)
+            {
+                frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
+                if (frameElapsedTime >= Character.frameTimeStep)
+                {
+                    frameElapsedTime = 0;
+                    currentFrame++;
+                    frameRect.X = frameRect.Width * (currentFrame - 1);
+                }
+                await Task.Yield();
+            }
+            while (currentFrame > poseStartFrame)
+            {
+                frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
+                if (frameElapsedTime >= Character.frameTimeStep)
+                {
+                    frameElapsedTime = 0;
+                    currentFrame--;
+                    frameRect.X = frameRect.Width * (currentFrame - 1);
+                }
+                await Task.Yield();
+            }
+        }
+        public override async void Update(GameTime gameTime)
         {
             base.Update(gameTime);
             frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
@@ -112,40 +143,53 @@ namespace TileGame
             }
 
             KeyboardState ks = Keyboard.GetState();
-
-            if (ks.GetPressedKeys().Length == 0)
+            currentAnimation = Character.AnimationType.idle;
+            if (ks.IsKeyDown(Keys.Space) && !lastKeyboardState.IsKeyDown(Keys.Space))
             {
-                currentAnimation = Character.AnimationType.idle;
+                await DoAnimation(Character.AnimationType.attack, gameTime);
             }
-            else
+            gridPosition = TileMap.ToGrid(position, g.currentMap.size);
+            gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
+            if (Game1.IsWithinRectangle(position + pointDirection * speed, g.mapRect) && g.currentMap.hitbox[gridIndex] != 1)
             {
-                currentAnimation = Character.AnimationType.walk;
                 if (ks.IsKeyDown(Keys.W))
                 {
+                    currentAnimation = Character.AnimationType.walk;
                     position.Y += -speed;
+                    pointDirection.Y = -1;
                 }
                 if (ks.IsKeyDown(Keys.S))
                 {
+                    currentAnimation = Character.AnimationType.walk;
                     position.Y += speed;
+                    pointDirection.Y = 1;
                 }
                 if (ks.IsKeyDown(Keys.A))
                 {
+                    currentAnimation = Character.AnimationType.walk;
                     position.X += -speed;
-                    isPointRight = false;
+                    pointDirection.X = -1;
                 }
                 if (ks.IsKeyDown(Keys.D))
                 {
+                    currentAnimation = Character.AnimationType.walk;
                     position.X += speed;
-                    isPointRight = true;
+                    pointDirection.X = 1;
                 }
             }
+            else
+            {
+                position -= pointDirection * speed;
+                pointDirection = Vector2.Zero;
+            }
+            lastKeyboardState = ks;
         }
 
         public override void Draw(GameTime gameTime)
         {
             base.Draw(gameTime);
             spriteBatch.Begin();
-            if (isPointRight)
+            if (pointDirection.X == 1)
             {
                 spriteBatch.Draw(texture, position - center, frameRect, Color.White);
             }
