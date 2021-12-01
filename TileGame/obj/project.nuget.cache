@@ -1,11 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "pxoY4lHJnUuHXpnsW6lJ8lEvU47VTlZpcZrVm/7SThha1zddiCfk7poQhvltBg7bTuE2yi3PLogk2QGz1ODOIg==",
+  "dgSpecHash": "xr2+/lbiW9gwJz7TNHl3YexxZLFqXtRjLs09OTvTfu9v4g39WVliyn8CX8CxrShSPq8oXvRyY/M8ZrTctbU3mw==",
   "success": true,
-  "projectFilePath": "C:\\Users\\ttca9\\OneDrive\\桌面\\MonogameTileEditor-main\\TileGame\\TileGame.csproj",
+  "projectFilePath": "C:\\Users\\a1\\Documents\\GitHub\\MonogameTileEditor\\TileGame\\TileGame.csproj",
   "expectedPackageFiles": [
-    "C:\\Users\\ttca9\\.nuget\\packages\\monogame.content.builder.task\\3.8.0.1641\\monogame.content.builder.task.3.8.0.1641.nupkg.sha512",
-    "C:\\Users\\ttca9\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.0.1641\\monogame.framework.desktopgl.3.8.0.1641.nupkg.sha512"
+    "C:\\Users\\a1\\.nuget\\packages\\monogame.content.builder.task\\3.8.0.1641\\monogame.content.builder.task.3.8.0.1641.nupkg.sha512",
+    "C:\\Users\\a1\\.nuget\\packages\\monogame.framework.desktopgl\\3.8.0.1641\\monogame.framework.desktopgl.3.8.0.1641.nupkg.sha512"
   ],
   "logs": []
 }

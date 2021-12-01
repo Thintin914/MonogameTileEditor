@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <SourceFile>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Characters/coin.png</SourceFile>
-  <SourceTime>2021-11-29T10:28:32+08:00</SourceTime>
-  <DestFile>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/bin/DesktopGL/Content/Characters/coin.xnb</DestFile>
-  <DestTime>2021-11-30T20:00:44.6750029+08:00</DestTime>
+  <SourceFile>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Characters/coin.png</SourceFile>
+  <SourceTime>2021-12-01T11:57:01.9715418+08:00</SourceTime>
+  <DestFile>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/bin/DesktopGL/Content/Characters/coin.xnb</DestFile>
+  <DestTime>2021-12-01T11:57:20.5141231+08:00</DestTime>
   <Importer>TextureImporter</Importer>
-  <ImporterTime>2020-08-10T16:17:54+08:00</ImporterTime>
+  <ImporterTime>2020-08-11T00:17:54+08:00</ImporterTime>
   <Processor>TextureProcessor</Processor>
-  <ProcessorTime>2020-08-10T16:17:54+08:00</ProcessorTime>
+  <ProcessorTime>2020-08-11T00:17:54+08:00</ProcessorTime>
   <Parameters>
     <Key>ColorKeyColor</Key>
     <Value>255,0,255,255</Value>

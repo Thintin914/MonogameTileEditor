@@ -39,6 +39,8 @@ namespace TileGame
 
         public CharacterTable characterTable;
         public List<Character.CharacterBehaviour> mapCharacters = new List<Character.CharacterBehaviour>();
+
+        private Player player;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -79,6 +81,9 @@ namespace TileGame
 
             characterTable = new CharacterTable(this);
             Components.Add(characterTable);
+
+            player = new Player(this, Vector2.Zero);
+            Components.Add(player);
 
             SetButtonActive(gameState, UIButtons[1].name);
             base.Initialize();

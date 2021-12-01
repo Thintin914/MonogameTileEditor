@@ -11,7 +11,6 @@ namespace TileGame
         public const int TotalEntity = 4;
         public EntityDetails entityDetails;
         private double frameElapsedTime;
-        public const double frameTimeStep = 1000 / 8f;
         private int currentFrame = 0, totalFrame;
         private bool isForward = true;
 
@@ -54,7 +53,7 @@ namespace TileGame
             if (entityDetails.isAnimated)
             {
                 frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
-                if (frameElapsedTime >= frameTimeStep)
+                if (frameElapsedTime >= Character.frameTimeStep)
                 {
                     if (isForward && currentFrame + 1 == totalFrame)
                     {

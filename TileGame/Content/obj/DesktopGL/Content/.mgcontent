@@ -4,25 +4,25 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/BasicFont.spritefont</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Characters/coin.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Characters/person1.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Characters/portal1.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/GameEntities/grass.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/GameEntities/shroom1.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/GameEntities/shroom2.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/GameEntities/tree1.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Tiles/deepWater.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Tiles/dirt.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Tiles/dirtPath.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Tiles/empty.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Tiles/grass.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Tiles/select.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Tiles/water.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Tiles/waterBottomLeft.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Tiles/waterBottomRight.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Tiles/waterTopLeft.png</File>
-    <File>C:/Users/ttca9/OneDrive/桌面/MonogameTileEditor-main/TileGame/Content/Tiles/waterTopRight.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/BasicFont.spritefont</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Characters/coin.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Characters/person1.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Characters/portal1.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/GameEntities/grass.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/GameEntities/shroom1.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/GameEntities/shroom2.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/GameEntities/tree1.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Tiles/deepWater.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Tiles/dirt.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Tiles/dirtPath.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Tiles/empty.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Tiles/grass.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Tiles/select.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Tiles/water.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Tiles/waterBottomLeft.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Tiles/waterBottomRight.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Tiles/waterTopLeft.png</File>
+    <File>C:/Users/a1/Documents/GitHub/MonogameTileEditor/TileGame/Content/Tiles/waterTopRight.png</File>
   </SourceFiles>
   <DestFiles>
     <File xsi:nil="true" />

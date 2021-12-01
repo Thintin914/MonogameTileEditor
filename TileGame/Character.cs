@@ -56,7 +56,7 @@ namespace TileGame
         }
         public void SetCharacterVisualData(int ID)
         {
-            currentAnimation = AnimationType.walk;
+            currentAnimation = AnimationType.idle;
             lastAnimation = AnimationType.idle;
             allAnimations = new CharacterAnimation[3];
             switch (ID)
@@ -76,7 +76,7 @@ namespace TileGame
                     allAnimations[2] = new CharacterAnimation(AnimationType.attack, 7, 9);
                     break;
             }
-            totalFrame = GetTotalFrame();
+            totalFrame = GetTotalFrame(ref allAnimations);
             SetFrameDetails(currentAnimation);
             if (poseEndFrame > 1)
                 isAnimated = true;
@@ -91,7 +91,7 @@ namespace TileGame
             }
             center = new Vector2(frameRect.Width * 0.5f, frameRect.Height * 0.5f);
         }
-        private int GetTotalFrame()
+        public static int GetTotalFrame(ref CharacterAnimation[] allAnimations)
         {
             int tempFrame = 0;
             for (int i = 0; i < allAnimations.Length; i++)
