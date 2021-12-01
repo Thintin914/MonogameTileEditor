@@ -15,10 +15,10 @@ namespace TileGame
         public string fileName;
         private Texture2D texture;
         public Rectangle frameRect;
-        private bool isAnimated, isForward = true, isRight = true, isAttackable;
+        private bool isAnimated, isForward = true, isRight = true, hasAttacked, needAttackRest;
         private int currentFrame, poseStartFrame, poseEndFrame, totalFrame;
         public int ID;
-        private double frameElapsedTime;
+        private double frameElapsedTime, attackChargingTime;
         private Game1 g;
         private SpriteBatch spriteBatch;
         private float rotate;
@@ -160,9 +160,11 @@ namespace TileGame
                     if (isForward && currentFrame == poseEndFrame)
                     {
                         isForward = false;
-                        if (isAttackable == true && lastAnimation == AnimationType.attack)
+                        if (hasAttacked == true && currentAnimation == AnimationType.attack)
                         {
-                            isAttackable = false;
+                            needAttackRest = true;
+                            currentAnimation = AnimationType.idle;
+                            attackChargingTime = gameTime.TotalGameTime.TotalSeconds;
                         }
                     }
                     else if (!isForward && currentFrame == poseStartFrame)
@@ -190,11 +192,11 @@ namespace TileGame
             spriteBatch.Begin();
             if (isRight) 
             {
-                spriteBatch.Draw(texture, position, frameRect, Color.White, rotate, center, 1, SpriteEffects.None, 1);
+                spriteBatch.Draw(texture, position, frameRect, Color.White, rotate, center, 1, SpriteEffects.None, 0);
             }
             else
             {
-                spriteBatch.Draw(texture, position, frameRect, Color.White, rotate, center, 1, SpriteEffects.FlipHorizontally, 1);
+                spriteBatch.Draw(texture, position, frameRect, Color.White, rotate, center, 1, SpriteEffects.FlipHorizontally, 0);
             }
             spriteBatch.End();
         }
@@ -204,11 +206,11 @@ namespace TileGame
             public string name;
             private float range, attackWaitTime;
             private Vector2 gridPosition, footPosition, pastStandablePosition;
-            private int gridIndex;
-            private double attackChargingTime;
+            public int gridIndex;
 
             public CharacterBehaviour(Game1 g, int ID, Vector2 position): base (g, ID, position)
             {
+                SetGridIndex();
                 name = fileName;
                 CharacterSettings tempSettings = SetRange(name);
                 range = tempSettings.range;
@@ -228,7 +230,7 @@ namespace TileGame
                 switch (name)
                 {
                     case "person1":
-                        return new CharacterSettings(60, 0.5f);
+                        return new CharacterSettings(60, 1);
                 }
                 return new CharacterSettings(60, 0.5f);
             }
@@ -289,22 +291,24 @@ namespace TileGame
                 }
                 else if (name == "person1")
                 {
-                    if (GetDistance(position, g.player.footPosition) > range && isAttackable == false)
+                    if (GetDistance(position, g.player.footPosition) > range && hasAttacked == false)
                     {
                         ChaseTarget(g.player.footPosition);
                     }
                     else
                     {
-                        if (isAttackable == false) 
+                        if (hasAttacked == false)
                         {
-                            isAttackable = true;
-                            currentAnimation = AnimationType.idle;
-                            attackChargingTime = gameTime.TotalGameTime.TotalSeconds;
-                        }
-                        else if (gameTime.TotalGameTime.TotalSeconds - attackChargingTime > attackWaitTime)
-                        {
-                            attackChargingTime = 0;
+                            hasAttacked = true;
                             currentAnimation = AnimationType.attack;
+                        }
+                        else if (needAttackRest)
+                        {
+                            if (gameTime.TotalGameTime.TotalSeconds - attackChargingTime > attackWaitTime)
+                            {
+                                needAttackRest = false;
+                                hasAttacked = false;
+                            }
                         }
                     }
                 }

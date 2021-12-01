@@ -22,7 +22,8 @@ namespace TileGame
         private Rectangle frameRect;
         private double frameElapsedTime;
         private bool isForward = true, isRight;
-        private int currentFrame, poseStartFrame, poseEndFrame, totalFrame, gridIndex;
+        private int currentFrame, poseStartFrame, poseEndFrame, totalFrame;
+        public int gridIndex;
         public Character.AnimationType currentAnimation, lastAnimation;
         public Character.CharacterAnimation[] allAnimations;
 

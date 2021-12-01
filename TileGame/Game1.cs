@@ -41,6 +41,7 @@ namespace TileGame
         public List<Character.CharacterBehaviour> mapCharacters = new List<Character.CharacterBehaviour>();
 
         public Player player;
+        private SortingLayer[] sortingLayers;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -331,16 +332,51 @@ namespace TileGame
             }
             return true;
         }
+        public class SortingLayer
+        {
+            public float layerDepth;
+            public enum ListName { entity, character, player}
+            public ListName name;
+            public SortingLayer(float layerDepth, ListName listName)
+            {
+                this.layerDepth = layerDepth;
+                name = listName;
+            }
+        }
+        private int SetSortingLayers()
+        {
+            float mapSize = currentMap.x * currentMap.y;
+            int currentIndex = 0, totalObject = currentMap.entityData.Count + mapCharacters.Count + 1;
+            float depth = 0;
+            sortingLayers = new SortingLayer[totalObject];
+            for(int i = 0; i < currentMap.entityData.Count; i++)
+            {
+                depth = (float)currentMap.entityData[i].indexPosition / mapSize;
+                sortingLayers[currentIndex] = new SortingLayer(depth, SortingLayer.ListName.entity);
+                currentIndex++;
+            }
+            for (int i = 0; i < mapCharacters.Count; i++)
+            {
+                depth = (float)mapCharacters[i].gridIndex / mapSize;
+                sortingLayers[currentIndex] = new SortingLayer(depth, SortingLayer.ListName.character);
+                currentIndex++;
+            }
+            depth = (float)player.gridIndex / mapSize;
+            sortingLayers[currentIndex] = new SortingLayer(depth, SortingLayer.ListName.player);
+            Array.Sort(sortingLayers, delegate (SortingLayer x, SortingLayer y) { return x.layerDepth.CompareTo(y.layerDepth); });
+            return totalObject;
+        }
         protected override void Draw(GameTime gameTime)
         {
             GraphicsDevice.Clear(Color.CornflowerBlue);
 
             // TODO: Add your drawing code here
             _spriteBatch.Begin();
+            // Draw Tiles
             for (int i = 0; i < currentMap.x * currentMap.y; i++)
             {
                 int tileID = currentMap.tileCostume[i];
-                _spriteBatch.Draw(tileCostumes[tileID], new Vector2(currentMap.GetTileX(i), currentMap.GetTileY(i)) * currentMap.size + mapOffset, Color.White);
+                _spriteBatch.Draw(tileCostumes[tileID], new Vector2(currentMap.GetTileX(i), currentMap.GetTileY(i)) * currentMap.size + mapOffset, null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
             }
             if (gameState == GameState.entityRemoveMode)
             {
@@ -364,11 +400,19 @@ namespace TileGame
                     currentMap.entityData.RemoveAt(removeIndex);
                 }
             }
-            for (int i = 0; i < currentMap.entityData.Count; i++)
+            int totalObject = SetSortingLayers();
+            //Draw All Map Objects
+            int currentEntityIndex = 0;
+            int currentCharacterIndex = 0;
+            for (int i = 0; i < totalObject; i++)
             {
-                int entityIndex = FindIndexWithNameInList(EntityTable.GetEntityStatus(currentMap.entityData[i].ID).name, ref mapEntities);
-                Vector2 entityPosition = new Vector2(currentMap.GetTileX(currentMap.entityData[i].indexPosition), currentMap.GetTileY(currentMap.entityData[i].indexPosition)) * currentMap.size - mapEntities[entityIndex].entityDetails.partialCenter - new Vector2(0, 1) * mapEntities[entityIndex].entityDetails.entityWholeTexture.Height * 0.4f;
-                _spriteBatch.Draw(mapEntities[entityIndex].entityDetails.entityWholeTexture, entityPosition + mapOffset, mapEntities[entityIndex].entityDetails.frameRect, Color.White);
+                if (sortingLayers[i].name == SortingLayer.ListName.entity)
+                {
+                    int entityIndex = FindIndexWithNameInList(EntityTable.GetEntityStatus(currentMap.entityData[currentEntityIndex].ID).name, ref mapEntities);
+                    Vector2 entityPosition = new Vector2(currentMap.GetTileX(currentMap.entityData[currentEntityIndex].indexPosition), currentMap.GetTileY(currentMap.entityData[currentEntityIndex].indexPosition)) * currentMap.size - mapEntities[entityIndex].entityDetails.partialCenter - new Vector2(0, 1) * mapEntities[entityIndex].entityDetails.entityWholeTexture.Height * 0.4f + mapOffset;
+                    _spriteBatch.Draw(mapEntities[entityIndex].entityDetails.entityWholeTexture, entityPosition, mapEntities[entityIndex].entityDetails.frameRect, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, sortingLayers[i].layerDepth);
+                    currentEntityIndex++;
+                }
             }
             if (gameState == GameState.hitboxMode)
             {
