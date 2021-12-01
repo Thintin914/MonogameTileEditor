@@ -33,16 +33,13 @@ C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Ti
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Tiles\dirt.xnb
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Tiles\dirtPath.xnb
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\BasicFont.xnb
-C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\GameEntities\portal1.png
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\GameEntities\shroom1.png
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\GameEntities\shroom2.png
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\GameEntities\tree1.png
-C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\GameEntities\portal1.xnb
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\GameEntities\shroom1.xnb
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\GameEntities\shroom2.xnb
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\GameEntities\tree1.xnb
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Tiles\deepWater.xnb
-C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\GameEntities\coin.xnb
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\GameEntities\grass.xnb
 C:\Users\ttca9\OneDrive\桌面\MonogameTileEditor-main\TileGame\bin\Debug\netcoreapp3.1\Content\GameEntities\shroom1.png
 C:\Users\ttca9\OneDrive\桌面\MonogameTileEditor-main\TileGame\bin\Debug\netcoreapp3.1\Content\GameEntities\shroom2.png
@@ -181,3 +178,6 @@ C:\Users\a1\Documents\GitHub\MonogameTileEditor\TileGame\obj\Debug\netcoreapp3.1
 C:\Users\a1\Documents\GitHub\MonogameTileEditor\TileGame\obj\Debug\netcoreapp3.1\TileGame.dll
 C:\Users\a1\Documents\GitHub\MonogameTileEditor\TileGame\obj\Debug\netcoreapp3.1\TileGame.pdb
 C:\Users\a1\Documents\GitHub\MonogameTileEditor\TileGame\obj\Debug\netcoreapp3.1\TileGame.genruntimeconfig.cache
+C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Characters\coin.xnb
+C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Characters\person1.xnb
+C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Characters\portal1.xnb

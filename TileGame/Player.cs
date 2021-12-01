@@ -13,7 +13,7 @@ namespace TileGame
     {
         private Game1 g;
         private Texture2D texture;
-        public Vector2 position, footPosition;
+        public Vector2 position, footPosition, pastStandablePosition;
         private Vector2 center, gridPosition, velocity;
         private float speed = 3f;
         private SpriteBatch spriteBatch;
@@ -154,6 +154,7 @@ namespace TileGame
             gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
             if (Game1.IsWithinRectangle(footPosition + velocity * speed, g.mapRect) && g.currentMap.hitbox[gridIndex] != 1)
             {
+                pastStandablePosition = position;
                 if (ks.IsKeyDown(Keys.W))
                 {
                     currentAnimation = Character.AnimationType.walk;
@@ -179,7 +180,7 @@ namespace TileGame
             }
             else
             {
-                position -= velocity * 1.2f;
+                position = pastStandablePosition;
                 velocity = Vector2.Zero;
             }
             position += velocity;
