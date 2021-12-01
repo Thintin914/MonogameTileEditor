@@ -40,7 +40,7 @@ namespace TileGame
         public CharacterTable characterTable;
         public List<Character.CharacterBehaviour> mapCharacters = new List<Character.CharacterBehaviour>();
 
-        private Player player;
+        public Player player;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);

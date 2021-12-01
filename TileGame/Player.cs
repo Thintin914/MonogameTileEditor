@@ -9,18 +9,19 @@ using System.Threading.Tasks;
 
 namespace TileGame
 {
-    class Player: DrawableGameComponent
+    public class Player: DrawableGameComponent
     {
         private Game1 g;
         private Texture2D texture;
-        private Vector2 position, center, pointDirection, gridPosition, velocity;
+        public Vector2 position, footPosition;
+        private Vector2 center, gridPosition, velocity;
         private float speed = 3f;
         private SpriteBatch spriteBatch;
         private KeyboardState lastKeyboardState;
 
         private Rectangle frameRect;
         private double frameElapsedTime;
-        private bool isForward = true;
+        private bool isForward = true, isRight;
         private int currentFrame, poseStartFrame, poseEndFrame, totalFrame, gridIndex;
         public Character.AnimationType currentAnimation, lastAnimation;
         public Character.CharacterAnimation[] allAnimations;
@@ -148,40 +149,45 @@ namespace TileGame
             {
                 await DoAnimation(Character.AnimationType.attack, gameTime);
             }
-            gridPosition = TileMap.ToGrid(position, g.currentMap.size);
+            footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.4f;
+            gridPosition = TileMap.ToGrid(footPosition, g.currentMap.size);
             gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
-            if (Game1.IsWithinRectangle(position + pointDirection * speed, g.mapRect) && g.currentMap.hitbox[gridIndex] != 1)
+            if (Game1.IsWithinRectangle(footPosition + velocity * speed, g.mapRect) && g.currentMap.hitbox[gridIndex] != 1)
             {
                 if (ks.IsKeyDown(Keys.W))
                 {
                     currentAnimation = Character.AnimationType.walk;
-                    position.Y += -speed;
-                    pointDirection.Y = -1;
+                    velocity.Y = -speed;
                 }
                 if (ks.IsKeyDown(Keys.S))
                 {
                     currentAnimation = Character.AnimationType.walk;
-                    position.Y += speed;
-                    pointDirection.Y = 1;
+                    velocity.Y = speed;
                 }
                 if (ks.IsKeyDown(Keys.A))
                 {
                     currentAnimation = Character.AnimationType.walk;
-                    position.X += -speed;
-                    pointDirection.X = -1;
+                    velocity.X = -speed;
+                    isRight = false;
                 }
                 if (ks.IsKeyDown(Keys.D))
                 {
                     currentAnimation = Character.AnimationType.walk;
-                    position.X += speed;
-                    pointDirection.X = 1;
+                    velocity.X = speed;
+                    isRight = true;
                 }
             }
             else
             {
-                position -= pointDirection * speed;
-                pointDirection = Vector2.Zero;
+                position -= velocity * 1.2f;
+                velocity = Vector2.Zero;
             }
+            position += velocity;
+            velocity *= 0.9f;
+            if (MathF.Abs(velocity.X) < 0.1f)
+                velocity.X = 0;
+            if (MathF.Abs(velocity.Y) < 0.1f)
+                velocity.Y = 0;
             lastKeyboardState = ks;
         }
 
@@ -189,13 +195,13 @@ namespace TileGame
         {
             base.Draw(gameTime);
             spriteBatch.Begin();
-            if (pointDirection.X == 1)
+            if (isRight)
             {
                 spriteBatch.Draw(texture, position - center, frameRect, Color.White);
             }
             else
             {
-                spriteBatch.Draw(texture, position, frameRect, Color.White, 0, center, 1, SpriteEffects.FlipHorizontally, 1);
+                spriteBatch.Draw(texture, position - center, frameRect, Color.White, 0, Vector2.Zero, 1, SpriteEffects.FlipHorizontally, 1);
             }
             spriteBatch.End();
         }

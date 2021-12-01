@@ -15,7 +15,7 @@ namespace TileGame
         public string fileName;
         private Texture2D texture;
         public Rectangle frameRect;
-        private bool isAnimated, isForward = true;
+        private bool isAnimated, isForward = true, isRight = true, isAttackable;
         private int currentFrame, poseStartFrame, poseEndFrame, totalFrame;
         public int ID;
         private double frameElapsedTime;
@@ -23,7 +23,7 @@ namespace TileGame
         private SpriteBatch spriteBatch;
         private float rotate;
 
-        public Vector2 position, center;
+        public Vector2 position, center, velocity;
         public const int totalCharacter = 3;
         public const double frameTimeStep = 1000 / 8f;
 
@@ -135,6 +135,14 @@ namespace TileGame
         }
         public override void Update(GameTime gameTime)
         {
+            if (velocity != Vector2.Zero) {
+                position += velocity;
+                velocity *= 0.9f;
+                if (MathF.Abs(velocity.X) < 0.1f)
+                    velocity.X = 0;
+                if (MathF.Abs(velocity.Y) < 0.1f)
+                    velocity.Y = 0;
+            }
             if (isAnimated)
             {
                 frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
@@ -152,6 +160,10 @@ namespace TileGame
                     if (isForward && currentFrame == poseEndFrame)
                     {
                         isForward = false;
+                        if (isAttackable == true && lastAnimation == AnimationType.attack)
+                        {
+                            isAttackable = false;
+                        }
                     }
                     else if (!isForward && currentFrame == poseStartFrame)
                     {
@@ -176,25 +188,125 @@ namespace TileGame
         {
             base.Draw(gameTime);
             spriteBatch.Begin();
-            spriteBatch.Draw(texture, position, frameRect, Color.White, rotate, center, 1, SpriteEffects.None, 1);
+            if (isRight) 
+            {
+                spriteBatch.Draw(texture, position, frameRect, Color.White, rotate, center, 1, SpriteEffects.None, 1);
+            }
+            else
+            {
+                spriteBatch.Draw(texture, position, frameRect, Color.White, rotate, center, 1, SpriteEffects.FlipHorizontally, 1);
+            }
             spriteBatch.End();
         }
 
         public class CharacterBehaviour: Character
         {
             public string name;
+            private float range, attackWaitTime;
+            private Vector2 gridPosition, footPosition, pastStandablePosition;
+            private int gridIndex;
+            private double attackChargingTime;
 
             public CharacterBehaviour(Game1 g, int ID, Vector2 position): base (g, ID, position)
             {
                 name = fileName;
+                CharacterSettings tempSettings = SetRange(name);
+                range = tempSettings.range;
+                attackWaitTime = tempSettings.attackWaitTime;
             }
-
+            private class CharacterSettings
+            {
+                public float range, attackWaitTime;
+                public CharacterSettings(float range, float attackWaitTime)
+                {
+                    this.range = range;
+                    this.attackWaitTime = attackWaitTime;
+                }
+            }
+            private CharacterSettings SetRange(string name)
+            {
+                switch (name)
+                {
+                    case "person1":
+                        return new CharacterSettings(60, 0.5f);
+                }
+                return new CharacterSettings(60, 0.5f);
+            }
+            private void ChaseTarget(Vector2 targetPosition)
+            {
+                currentAnimation = AnimationType.walk;
+                SetGridIndex();
+                if (g.currentMap.hitbox[gridIndex] != 1 && g.currentMap.tileCostume[gridIndex] != 0) {
+                    pastStandablePosition = position;
+                    if (targetPosition.X > footPosition.X)
+                    {
+                        isRight = true;
+                        velocity.X = 1;
+                    }
+                    else if (targetPosition.X < footPosition.X)
+                    {
+                        isRight = false;
+                        velocity.X = -1;
+                    }
+                    if (targetPosition.Y > footPosition.Y)
+                    {
+                        velocity.Y = 1;
+                    }
+                    else if (targetPosition.Y < footPosition.Y)
+                    {
+                        velocity.Y = -1;
+                    }
+                }
+                else
+                {
+                    position = pastStandablePosition;
+                    velocity = Vector2.Zero;
+                }
+            }
+            private void SetGridIndex()
+            {
+                footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.4f;
+                gridPosition = TileMap.ToGrid(footPosition + velocity, g.currentMap.size);
+                gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
+            }
+            public static float GetDistance(Vector2 a, Vector2 b)
+            {
+                return MathF.Sqrt(MathF.Pow(a.X - b.X, 2) + MathF.Pow(a.Y - b.Y, 2));
+            }
             public override void Update(GameTime gameTime)
             {
                 base.Update(gameTime);
                 if (name == "portal1")
                 {
-                    rotate = (rotate + 0.1f) % 360;
+                    if (GetDistance(position, g.player.footPosition) < 42)
+                    {
+
+                    }
+                    else
+                    {
+                        rotate = (rotate + 0.1f) % 360;
+                    }
+                }
+                else if (name == "person1")
+                {
+                    if (GetDistance(position, g.player.footPosition) > range && isAttackable == false)
+                    {
+                        ChaseTarget(g.player.footPosition);
+                    }
+                    else
+                    {
+                        if (isAttackable == false) 
+                        {
+                            isAttackable = true;
+                            currentAnimation = AnimationType.idle;
+                            attackChargingTime = gameTime.TotalGameTime.TotalSeconds;
+                        }
+                        else if (gameTime.TotalGameTime.TotalSeconds - attackChargingTime > attackWaitTime)
+                        {
+                            attackChargingTime = 0;
+                            currentAnimation = AnimationType.attack;
+                        }
+                    }
                 }
             }
         }
