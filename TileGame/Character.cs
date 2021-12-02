@@ -313,7 +313,7 @@ namespace TileGame
                 }
                 else if (name == "person1")
                 {
-                    if (GetDistance(position, g.player.footPosition) > range && hasAttacked == false)
+                    if (GetDistance(position, g.player.position) > range && hasAttacked == false)
                     {
                         ChaseTarget(g.player.footPosition);
                     }

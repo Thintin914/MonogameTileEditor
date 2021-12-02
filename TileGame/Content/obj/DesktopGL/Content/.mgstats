@@ -1,4 +1,5 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Attacks/attack1.png","C:/Users/ttca9/source/repos/TileGame/TileGame/Content/bin/DesktopGL/Content/Attacks/attack1.xnb","TextureProcessor","Texture2DContent",710,22885,0.1676049
 "C:/Users/ttca9/source/repos/TileGame/TileGame/Content/BasicFont.spritefont","C:/Users/ttca9/source/repos/TileGame/TileGame/Content/bin/DesktopGL/Content/BasicFont.xnb","FontDescriptionProcessor","SpriteFontContent",2008,21538,0.37097
 "C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Characters/coin.png","C:/Users/ttca9/source/repos/TileGame/TileGame/Content/bin/DesktopGL/Content/Characters/coin.xnb","TextureProcessor","Texture2DContent",894,11509,0.1393481
 "C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Characters/person1.png","C:/Users/ttca9/source/repos/TileGame/TileGame/Content/bin/DesktopGL/Content/Characters/person1.xnb","TextureProcessor","Texture2DContent",8879,208237,0.0153388

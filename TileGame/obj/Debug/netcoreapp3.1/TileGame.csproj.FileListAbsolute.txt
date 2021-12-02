@@ -181,3 +181,4 @@ C:\Users\a1\Documents\GitHub\MonogameTileEditor\TileGame\obj\Debug\netcoreapp3.1
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Characters\coin.xnb
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Characters\person1.xnb
 C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Characters\portal1.xnb
+C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Attacks\attack1.xnb

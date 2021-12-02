@@ -4,6 +4,7 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
+    <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Attacks/attack1.png</File>
     <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/BasicFont.spritefont</File>
     <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Characters/coin.png</File>
     <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Characters/person1.png</File>
@@ -25,6 +26,7 @@
     <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Tiles/waterTopRight.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
