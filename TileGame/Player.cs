@@ -12,16 +12,17 @@ namespace TileGame
     public class Player: DrawableGameComponent
     {
         private Game1 g;
-        private Texture2D texture;
+        public Texture2D texture;
         public Vector2 position, footPosition, pastStandablePosition;
-        private Vector2 center, gridPosition, velocity;
+        private Vector2 gridPosition, velocity;
+        public Vector2 center;
         private float speed = 3f;
-        private SpriteBatch spriteBatch;
         private KeyboardState lastKeyboardState;
 
-        private Rectangle frameRect;
+        public Rectangle frameRect;
         private double frameElapsedTime;
-        private bool isForward = true, isRight;
+        private bool isForward = true;
+        public bool isRight;
         private int currentFrame, poseStartFrame, poseEndFrame, totalFrame;
         public int gridIndex;
         public Character.AnimationType currentAnimation, lastAnimation;
@@ -73,11 +74,6 @@ namespace TileGame
                 currentFrame = 1;
                 poseEndFrame = 1;
             }
-        }
-        protected override void LoadContent()
-        {
-            base.LoadContent();
-            spriteBatch = new SpriteBatch(GraphicsDevice);
         }
         private async Task DoAnimation(Character.AnimationType animation, GameTime gameTime)
         {
@@ -191,21 +187,6 @@ namespace TileGame
             if (MathF.Abs(velocity.Y) < 0.1f)
                 velocity.Y = 0;
             lastKeyboardState = ks;
-        }
-
-        public override void Draw(GameTime gameTime)
-        {
-            base.Draw(gameTime);
-            spriteBatch.Begin();
-            if (isRight)
-            {
-                spriteBatch.Draw(texture, position - center, frameRect, Color.White);
-            }
-            else
-            {
-                spriteBatch.Draw(texture, position - center, frameRect, Color.White, 0, Vector2.Zero, 1, SpriteEffects.FlipHorizontally, 1);
-            }
-            spriteBatch.End();
         }
     }
 }

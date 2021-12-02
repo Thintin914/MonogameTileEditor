@@ -111,7 +111,7 @@ namespace TileGame
             tileCostumes[8] = Content.Load<Texture2D>("Tiles\\dirtPath");
             tileCostumes[9] = Content.Load<Texture2D>("Tiles\\deepWater");
 
-            currentMap = new TileMap(this, 10,10, "1");
+            currentMap = new TileMap(this, 20,20, "1");
             SetMapOffset();
         }
         private void LoadMapEntity()
@@ -363,7 +363,7 @@ namespace TileGame
             }
             depth = (float)player.gridIndex / mapSize;
             sortingLayers[currentIndex] = new SortingLayer(depth, SortingLayer.ListName.player);
-            Array.Sort(sortingLayers, delegate (SortingLayer x, SortingLayer y) { return x.layerDepth.CompareTo(y.layerDepth); });
+            //Array.Sort(sortingLayers, delegate (SortingLayer x, SortingLayer y) { return x.layerDepth.CompareTo(y.layerDepth); });
             return totalObject;
         }
         protected override void Draw(GameTime gameTime)
@@ -400,20 +400,6 @@ namespace TileGame
                     currentMap.entityData.RemoveAt(removeIndex);
                 }
             }
-            int totalObject = SetSortingLayers();
-            //Draw All Map Objects
-            int currentEntityIndex = 0;
-            int currentCharacterIndex = 0;
-            for (int i = 0; i < totalObject; i++)
-            {
-                if (sortingLayers[i].name == SortingLayer.ListName.entity)
-                {
-                    int entityIndex = FindIndexWithNameInList(EntityTable.GetEntityStatus(currentMap.entityData[currentEntityIndex].ID).name, ref mapEntities);
-                    Vector2 entityPosition = new Vector2(currentMap.GetTileX(currentMap.entityData[currentEntityIndex].indexPosition), currentMap.GetTileY(currentMap.entityData[currentEntityIndex].indexPosition)) * currentMap.size - mapEntities[entityIndex].entityDetails.partialCenter - new Vector2(0, 1) * mapEntities[entityIndex].entityDetails.entityWholeTexture.Height * 0.4f + mapOffset;
-                    _spriteBatch.Draw(mapEntities[entityIndex].entityDetails.entityWholeTexture, entityPosition, mapEntities[entityIndex].entityDetails.frameRect, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, sortingLayers[i].layerDepth);
-                    currentEntityIndex++;
-                }
-            }
             if (gameState == GameState.hitboxMode)
             {
                 for (int i = 0; i < currentMap.x * currentMap.y; i++)
@@ -433,7 +419,7 @@ namespace TileGame
                 }
                 if (gameState == GameState.entityPlantMode)
                 {
-                    _spriteBatch.Draw(plantingEntity.entityDetails.entityWholeTexture, mouseGridPosition - plantingEntity.entityDetails.partialCenter - new Vector2(0,1) * plantingEntity.entityDetails.entityWholeTexture.Height * 0.4f, plantingEntity.entityDetails.frameRect, Color.White);
+                    _spriteBatch.Draw(plantingEntity.entityDetails.entityWholeTexture, mouseGridPosition - plantingEntity.entityDetails.partialCenter - new Vector2(0, 1) * plantingEntity.entityDetails.entityWholeTexture.Height * 0.4f, plantingEntity.entityDetails.frameRect, Color.White);
                     if (clicked)
                     {
                         currentMap.entityData.Add(new TileMap.EntityData(plantingEntityID, index));
@@ -449,6 +435,46 @@ namespace TileGame
                 }
             }
             _spriteBatch.Draw(whiteRectangle, mousePosition, null, Color.White, 0f, Vector2.Zero, 5, SpriteEffects.None, 0f);
+            _spriteBatch.End();
+
+            _spriteBatch.Begin(SpriteSortMode.FrontToBack);
+            int totalObject = SetSortingLayers();
+            //Draw All Map Objects
+            int currentEntityIndex = 0;
+            int currentCharacterIndex = 0;
+            for (int i = 0; i < totalObject; i++)
+            {
+                if (sortingLayers[i].name == SortingLayer.ListName.entity)
+                {
+                    int entityIndex = FindIndexWithNameInList(EntityTable.GetEntityStatus(currentMap.entityData[currentEntityIndex].ID).name, ref mapEntities);
+                    Vector2 entityPosition = new Vector2(currentMap.GetTileX(currentMap.entityData[currentEntityIndex].indexPosition), currentMap.GetTileY(currentMap.entityData[currentEntityIndex].indexPosition)) * currentMap.size - mapEntities[entityIndex].entityDetails.partialCenter - new Vector2(0, 1) * mapEntities[entityIndex].entityDetails.entityWholeTexture.Height * 0.4f + mapOffset;
+                    _spriteBatch.Draw(mapEntities[entityIndex].entityDetails.entityWholeTexture, entityPosition, mapEntities[entityIndex].entityDetails.frameRect, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, sortingLayers[i].layerDepth);
+                    currentEntityIndex++;
+                }
+                else if (sortingLayers[i].name == SortingLayer.ListName.character)
+                {
+                    if (mapCharacters[currentCharacterIndex].isRight)
+                    {
+                        _spriteBatch.Draw(mapCharacters[currentCharacterIndex].texture, mapCharacters[currentCharacterIndex].position, mapCharacters[currentCharacterIndex].frameRect, Color.White, mapCharacters[currentCharacterIndex].rotate, mapCharacters[currentCharacterIndex].center, 1, SpriteEffects.None, sortingLayers[i].layerDepth);
+                    }
+                    else
+                    {
+                        _spriteBatch.Draw(mapCharacters[currentCharacterIndex].texture, mapCharacters[currentCharacterIndex].position, mapCharacters[currentCharacterIndex].frameRect, Color.White, mapCharacters[currentCharacterIndex].rotate, mapCharacters[currentCharacterIndex].center, 1, SpriteEffects.FlipHorizontally, sortingLayers[i].layerDepth);
+                    }
+                    currentCharacterIndex++;
+                }
+                else if (sortingLayers[i].name == SortingLayer.ListName.player)
+                {
+                    if (player.isRight)
+                    {
+                        _spriteBatch.Draw(player.texture, player.position - player.center, player.frameRect, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, sortingLayers[i].layerDepth);
+                    }
+                    else
+                    {
+                        _spriteBatch.Draw(player.texture, player.position - player.center, player.frameRect, Color.White, 0, Vector2.Zero, 1, SpriteEffects.FlipHorizontally, sortingLayers[i].layerDepth);
+                    }
+                }
+            }
             _spriteBatch.End();
             base.Draw(gameTime);
         }

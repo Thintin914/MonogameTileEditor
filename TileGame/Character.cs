@@ -13,15 +13,15 @@ namespace TileGame
         public AnimationType currentAnimation, lastAnimation;
         public CharacterAnimation[] allAnimations;
         public string fileName;
-        private Texture2D texture;
+        public Texture2D texture;
         public Rectangle frameRect;
-        private bool isAnimated, isForward = true, isRight = true, hasAttacked, needAttackRest;
+        private bool isAnimated, isForward = true, hasAttacked, needAttackRest;
+        public bool isRight;
         private int currentFrame, poseStartFrame, poseEndFrame, totalFrame;
         public int ID;
         private double frameElapsedTime, attackChargingTime;
         private Game1 g;
-        private SpriteBatch spriteBatch;
-        private float rotate;
+        public float rotate;
 
         public Vector2 position, center, velocity;
         public const int totalCharacter = 3;
@@ -29,7 +29,6 @@ namespace TileGame
 
         public Character(Game1 g, int ID, Vector2 position): base(g)
         {
-            spriteBatch = new SpriteBatch(GraphicsDevice);
             this.g = g;
             this.ID = ID;
             this.position = position;
@@ -37,7 +36,6 @@ namespace TileGame
         }
         public Character(Character c): base(c.g)
         {
-            spriteBatch = new SpriteBatch(GraphicsDevice);
             g = c.g;
             ID = c.ID;
             position = c.position;
@@ -186,21 +184,6 @@ namespace TileGame
             }
         }
 
-        public override void Draw(GameTime gameTime)
-        {
-            base.Draw(gameTime);
-            spriteBatch.Begin();
-            if (isRight) 
-            {
-                spriteBatch.Draw(texture, position, frameRect, Color.White, rotate, center, 1, SpriteEffects.None, 0);
-            }
-            else
-            {
-                spriteBatch.Draw(texture, position, frameRect, Color.White, rotate, center, 1, SpriteEffects.FlipHorizontally, 0);
-            }
-            spriteBatch.End();
-        }
-
         public class CharacterBehaviour: Character
         {
             public string name;
@@ -210,11 +193,15 @@ namespace TileGame
 
             public CharacterBehaviour(Game1 g, int ID, Vector2 position): base (g, ID, position)
             {
-                SetGridIndex();
                 name = fileName;
                 CharacterSettings tempSettings = SetRange(name);
                 range = tempSettings.range;
                 attackWaitTime = tempSettings.attackWaitTime;
+            }
+            public override void Initialize()
+            {
+                base.Initialize();
+                SetGridIndex();
             }
             private class CharacterSettings
             {
