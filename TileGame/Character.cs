@@ -18,11 +18,12 @@ namespace TileGame
         private bool isAnimated, isForward = true, hasAttacked, needAttackRest;
         public bool isRight;
         private int currentFrame, poseStartFrame, poseEndFrame, totalFrame;
-        public int ID;
+        public int ID, gridIndex;
         private double frameElapsedTime, attackChargingTime;
         private Game1 g;
         public float rotate;
 
+        private Vector2 pastStandablePosition, footPosition, gridPosition;
         public Vector2 position, center, velocity;
         public const int totalCharacter = 3;
         public const double frameTimeStep = 1000 / 8f;
@@ -89,6 +90,33 @@ namespace TileGame
             }
             center = new Vector2(frameRect.Width * 0.5f, frameRect.Height * 0.5f);
         }
+        private Vector2 GetNormalizedDirection(Vector2 targetPosition, Vector2 selfPosition, float speed = -1)
+        {
+            Vector2 temp = Vector2.Zero;
+            if (targetPosition.X > selfPosition.X)
+            {
+                if (speed != -1)
+                    if (MathF.Abs(targetPosition.X - selfPosition.X) > speed * 2)
+                        isRight = true;
+                temp.X = 1;
+            }
+            else if (targetPosition.X < selfPosition.X)
+            {
+                if (speed != -1)
+                    if (MathF.Abs(targetPosition.X - selfPosition.X) > speed * 2)
+                        isRight = false;
+                temp.X = -1;
+            }
+            if (targetPosition.Y > selfPosition.Y)
+            {
+                temp.Y = 1;
+            }
+            else if (targetPosition.Y < selfPosition.Y)
+            {
+                temp.Y = -1;
+            }
+            return temp;
+        }
         public static int GetTotalFrame(ref CharacterAnimation[] allAnimations)
         {
             int tempFrame = 0;
@@ -131,11 +159,49 @@ namespace TileGame
                 poseEndFrame = 1;
             }
         }
+        private bool DoesGridContainsCharacter(int index)
+        {
+            for (int i = 0; i < g.mapCharacters.Count; i++)
+            {
+                if (g.mapCharacters[i] != this && g.mapCharacters[i].gridIndex == gridIndex)
+                {
+                    position = pastStandablePosition;
+                    SetGridIndex();
+                    return true;
+                }
+            }
+            return false;
+        }
+        private void SetGridIndex()
+        {
+            footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.4f;
+            gridPosition = TileMap.ToGrid(footPosition + velocity, g.currentMap.size);
+            gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
+        }
+        private bool IsMovable()
+        {
+            SetGridIndex();
+            if (Game1.IsWithinRectangle(footPosition, g.mapRect) && g.currentMap.hitbox[gridIndex] != 1 && g.currentMap.tileCostume[gridIndex] != 0 && !DoesGridContainsCharacter(gridIndex))
+            {
+                return true;
+            }
+            return false;
+        }
         public override void Update(GameTime gameTime)
         {
             if (velocity != Vector2.Zero) {
-                position += velocity;
-                velocity *= 0.9f;
+                if (IsMovable())
+                {
+                    pastStandablePosition = position;
+                    position += velocity;
+                    velocity *= 0.9f;
+                }
+                else
+                {
+                    position = pastStandablePosition;
+                    SetGridIndex();
+                    velocity = Vector2.Zero;
+                }
                 if (MathF.Abs(velocity.X) < 0.1f)
                     velocity.X = 0;
                 if (MathF.Abs(velocity.Y) < 0.1f)
@@ -163,6 +229,7 @@ namespace TileGame
                             needAttackRest = true;
                             currentAnimation = AnimationType.idle;
                             attackChargingTime = gameTime.TotalGameTime.TotalSeconds;
+                            velocity = -GetNormalizedDirection(g.player.footPosition, position) * 3;
                         }
                     }
                     else if (!isForward && currentFrame == poseStartFrame)
@@ -187,9 +254,7 @@ namespace TileGame
         public class CharacterBehaviour: Character
         {
             public string name;
-            private float range, attackWaitTime;
-            private Vector2 gridPosition, footPosition, pastStandablePosition;
-            public int gridIndex;
+            private float range, attackWaitTime, speed;
 
             public CharacterBehaviour(Game1 g, int ID, Vector2 position): base (g, ID, position)
             {
@@ -197,6 +262,7 @@ namespace TileGame
                 CharacterSettings tempSettings = SetRange(name);
                 range = tempSettings.range;
                 attackWaitTime = tempSettings.attackWaitTime;
+                speed = tempSettings.speed;
             }
             public override void Initialize()
             {
@@ -205,11 +271,12 @@ namespace TileGame
             }
             private class CharacterSettings
             {
-                public float range, attackWaitTime;
-                public CharacterSettings(float range, float attackWaitTime)
+                public float range, attackWaitTime, speed;
+                public CharacterSettings(float range, float attackWaitTime, float speed)
                 {
                     this.range = range;
                     this.attackWaitTime = attackWaitTime;
+                    this.speed = speed;
                 }
             }
             private CharacterSettings SetRange(string name)
@@ -217,46 +284,14 @@ namespace TileGame
                 switch (name)
                 {
                     case "person1":
-                        return new CharacterSettings(60, 1);
+                        return new CharacterSettings(60, 1, 2);
                 }
-                return new CharacterSettings(60, 0.5f);
+                return new CharacterSettings(60, 0.5f, 1);
             }
             private void ChaseTarget(Vector2 targetPosition)
             {
                 currentAnimation = AnimationType.walk;
-                SetGridIndex();
-                if (g.currentMap.hitbox[gridIndex] != 1 && g.currentMap.tileCostume[gridIndex] != 0) {
-                    pastStandablePosition = position;
-                    if (targetPosition.X > footPosition.X)
-                    {
-                        isRight = true;
-                        velocity.X = 1;
-                    }
-                    else if (targetPosition.X < footPosition.X)
-                    {
-                        isRight = false;
-                        velocity.X = -1;
-                    }
-                    if (targetPosition.Y > footPosition.Y)
-                    {
-                        velocity.Y = 1;
-                    }
-                    else if (targetPosition.Y < footPosition.Y)
-                    {
-                        velocity.Y = -1;
-                    }
-                }
-                else
-                {
-                    position = pastStandablePosition;
-                    velocity = Vector2.Zero;
-                }
-            }
-            private void SetGridIndex()
-            {
-                footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.4f;
-                gridPosition = TileMap.ToGrid(footPosition + velocity, g.currentMap.size);
-                gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
+                velocity = GetNormalizedDirection(targetPosition, footPosition, speed);
             }
             public static float GetDistance(Vector2 a, Vector2 b)
             {
