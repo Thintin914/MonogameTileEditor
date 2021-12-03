@@ -8,7 +8,7 @@ using System.Diagnostics;
 
 namespace TileGame
 {
-    class InputField: DrawableGameComponent
+    public class InputField: DrawableGameComponent
     {
         private Game1 g;
         private SpriteBatch spriteBatch;
@@ -18,16 +18,19 @@ namespace TileGame
         private KeyboardState lastPressedKeys;
         private SpriteFont buttonFont;
         private string message = null;
+        private string[] mapData;
         private int defaultRectWidht;
-        private TileMap.CharacterData respectiveCharacter;
+        private Character.CharacterBehaviour respectiveCharacter;
+        private Game1.GameState currentGameState;
 
-        public InputField(Game1 g, Vector2 position, TileMap.CharacterData respectiveCharacter): base(g)
+        public InputField(Game1 g, Vector2 position, Game1.GameState currentGameState, Character.CharacterBehaviour respectiveCharacter = null): base(g)
         {
             this.g = g;
             defaultRectWidht = 100;
             buttonRect = new Rectangle((int)position.X, (int)position.Y, defaultRectWidht, 25);
             submitRect = new Rectangle(buttonRect.X + buttonRect.Width + 5, buttonRect.Y, 25, 25);
             this.respectiveCharacter = respectiveCharacter;
+            this.currentGameState = currentGameState;
             isSubmitted = false;
         }
 
@@ -75,7 +78,22 @@ namespace TileGame
                     {
                         if (!lastPressedKeys.IsKeyDown(ks.GetPressedKeys()[0]))
                         {
-                            message += ks.GetPressedKeys()[0].ToString();
+                            if (ks.GetPressedKeys()[0] == Keys.OemComma)
+                            {
+                                message += ", ";
+                            }
+                            else
+                            {
+                                int number = GetNumberFromKey(ks.GetPressedKeys()[0]);
+                                if (number == -1)
+                                {
+                                    message += ks.GetPressedKeys()[0].ToString();
+                                }
+                                else
+                                {
+                                    message += number.ToString();
+                                }
+                            }
                         }
                     }
                     lastPressedKeys = ks;
@@ -107,12 +125,43 @@ namespace TileGame
             }
             else
             {
-                g.SetButtonActive(Game1.GameState.characterMode, "ToCharacterModeButton");
-                g.characterTable.SetCharacterPage(g.characterTable.page);
-                respectiveCharacter.extra = message;
+                if (currentGameState == Game1.GameState.characterMode)
+                {
+                    g.SetButtonActive(Game1.GameState.characterMode, "ToCharacterModeButton");
+                    g.characterTable.SetCharacterPage(g.characterTable.page);
+                    respectiveCharacter.respectiveData.extra = message;
+                    respectiveCharacter.SetExtraSettings();
+                }
+                else if (currentGameState == Game1.GameState.createNewMapMode)
+                {
+                    mapData = message.Split(", ");
+                    if (mapData.Length == 3)
+                    {
+                        g.CreateNewMap(mapData[0], int.Parse(mapData[1]), int.Parse(mapData[2]));
+                    }
+                    else
+                    {
+                        g.CreateNewMap(mapData[0]);
+                    }
+                    g.SetButtonActive(Game1.GameState.tileMode, "ToTileModeButton");
+                }
                 Dispose();
                 g.Components.Remove(this);
             }
+        }
+        private int GetNumberFromKey(Keys key)
+        {
+            int keyVal = (int)key;
+            int value = -1;
+            if (keyVal >= (int)Keys.D0 && keyVal <= (int)Keys.D9)
+            {
+                value = (int)key - (int)Keys.D0;
+            }
+            else if (keyVal >= (int)Keys.NumPad0 && keyVal <= (int)Keys.NumPad9)
+            {
+                value = (int)key - (int)Keys.NumPad0;
+            }
+            return value;
         }
         public override void Draw(GameTime gameTime)
         {

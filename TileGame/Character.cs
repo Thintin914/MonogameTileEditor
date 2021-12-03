@@ -4,6 +4,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Diagnostics;
+using Microsoft.Xna.Framework.Input;
 
 namespace TileGame
 {
@@ -256,6 +257,8 @@ namespace TileGame
             public string name;
             private float range, attackWaitTime, speed;
             public TileMap.CharacterData respectiveData;
+            private string[] extraSettings;
+            private KeyboardState lastKeyboardState;
 
             public CharacterBehaviour(Game1 g, int ID, Vector2 position, TileMap.CharacterData respectiveData): base (g, ID, position)
             {
@@ -265,11 +268,22 @@ namespace TileGame
                 attackWaitTime = tempSettings.attackWaitTime;
                 speed = tempSettings.speed;
                 this.respectiveData = respectiveData;
+                if (respectiveData.extra != null)
+                {
+                    extraSettings = respectiveData.extra.Split(", ");
+                }
             }
             public override void Initialize()
             {
                 base.Initialize();
                 SetGridIndex();
+            }
+            public void SetExtraSettings()
+            {
+                if (respectiveData.extra != null)
+                {
+                    extraSettings = respectiveData.extra.Split(", ");
+                }
             }
             private class CharacterSettings
             {
@@ -302,11 +316,18 @@ namespace TileGame
             public override void Update(GameTime gameTime)
             {
                 base.Update(gameTime);
+                KeyboardState ks = Keyboard.GetState();
                 if (name == "portal1")
                 {
                     if (GetDistance(position, g.player.footPosition) < 42)
                     {
-
+                        if (extraSettings.Length == 2)
+                        {
+                            if (ks.IsKeyDown(Keys.Space) && !lastKeyboardState.IsKeyDown(Keys.Space))
+                            {
+                                g.CreateNewMap(extraSettings[0]);
+                            }
+                        }
                     }
                     else
                     {
@@ -340,6 +361,7 @@ namespace TileGame
                         }
                     }
                 }
+                lastKeyboardState = ks;
             }
         }
     }

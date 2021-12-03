@@ -45,7 +45,7 @@ namespace TileGame
 
         public Attack[] enemyAttacks;
 
-        private InputField inputField;
+        public InputField inputField;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -124,7 +124,7 @@ namespace TileGame
             tileCostumes[8] = Content.Load<Texture2D>("Tiles\\dirtPath");
             tileCostumes[9] = Content.Load<Texture2D>("Tiles\\deepWater");
 
-            currentMap = new TileMap(this, 20,20, "1");
+            CreateNewMap("ONE", 20, 20);
             SetMapOffset();
         }
         private void LoadMapEntity()
@@ -161,6 +161,27 @@ namespace TileGame
             }
             if (mapEntities.Count > 0)
                 mapEntities.Clear();
+            for (int i = 0; i < mapCharacters.Count; i++)
+            {
+                Components.Remove(mapCharacters[i]);
+                mapCharacters[i].Dispose();
+            }
+            if (mapCharacters.Count > 0)
+                mapCharacters.Clear();
+        }
+        public void CreateNewMap(string mapName, int x = 10, int y = 10)
+        {
+            ClearMap();
+            if (File.Exists(mapName + ".txt"))
+            {
+                TileMap tempMap = LoadTileMap(mapName);
+                currentMap = new TileMap(this, 20, 20, mapName);
+            }
+            else
+            {
+                currentMap = new TileMap(this, x, y, mapName);
+            }
+            SetMapOffset();
         }
         public int GetInactiveAttack(ref Attack[] attacks)
         {
@@ -267,7 +288,7 @@ namespace TileGame
                         Components.Add(mapCharacters[mapCharacters.Count - 1]);
                         if (plantingCharacter.fileName == "portal1")
                         {
-                            inputField = new InputField(this, plantingCharacter.position + new Vector2(0, 1) * 25, currentMap.characterData[currentMap.characterData.Count - 1]);
+                            inputField = new InputField(this, plantingCharacter.position + new Vector2(0, 1) * 25, GameState.characterMode, mapCharacters[mapCharacters.Count - 1]);
                             Components.Add(inputField);
                         }
                         else
@@ -302,7 +323,7 @@ namespace TileGame
                 {
                     UIButtons[i].isActive = true;
                 }
-                if (gameState == GameState.entityPlantMode || gameState == GameState.characterPlantMode)
+                if (gameState == GameState.entityPlantMode || gameState == GameState.characterPlantMode || gameState == GameState.createNewMapMode)
                 {
                     UIButtons[i].isHidden = true;
                 }
@@ -417,7 +438,7 @@ namespace TileGame
                 int tileID = currentMap.tileCostume[i];
                 _spriteBatch.Draw(tileCostumes[tileID], new Vector2(currentMap.GetTileX(i), currentMap.GetTileY(i)) * currentMap.size + mapOffset, null, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 0);
             }
-            if (gameState == GameState.entityRemoveMode)
+            if (gameState == GameState.entityRemoveMode && mapEntities.Count > 0)
             {
                 int removeIndex = -1;
                 for(int i = 0; i < currentMap.entityData.Count; i++)
@@ -508,7 +529,7 @@ namespace TileGame
             int currentCharacterIndex = 0;
             for (int i = 0; i < totalObject; i++)
             {
-                if (sortingLayers[i].name == SortingLayer.ListName.entity)
+                if (sortingLayers[i].name == SortingLayer.ListName.entity && mapEntities.Count > 0)
                 {
                     int entityIndex = FindIndexWithNameInList(EntityTable.GetEntityStatus(currentMap.entityData[currentEntityIndex].ID).name, ref mapEntities);
                     Vector2 entityPosition = new Vector2(currentMap.GetTileX(currentMap.entityData[currentEntityIndex].indexPosition), currentMap.GetTileY(currentMap.entityData[currentEntityIndex].indexPosition)) * currentMap.size - mapEntities[entityIndex].entityDetails.partialCenter - new Vector2(0, 1) * mapEntities[entityIndex].entityDetails.entityWholeTexture.Height * 0.4f + mapOffset;

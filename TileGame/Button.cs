@@ -99,7 +99,8 @@ namespace TileGame
                 else if (name == "ToCreateNewMapMode")
                 {
                     g.SetButtonActive(Game1.GameState.createNewMapMode, name);
-                    //g.ClearMap();
+                    g.inputField = new InputField(g, new Vector2(buttonRect.X + buttonRect.Width + 5, buttonRect.Y), Game1.GameState.createNewMapMode);
+                    g.Components.Add(g.inputField);
                 }
             }
         }
