@@ -10,15 +10,15 @@ namespace TileGame
     public class Attack: DrawableGameComponent
     {
         private Game1 g;
-        private Vector2 startPosition, endPosition, currentPosition;
-        private float range, distance, lerpPercentageRequired;
+        private Vector2 currentPosition, direction;
         private Texture2D texture;
         public bool isActive;
         private bool isForward = true;
         private int currentFrame, totalFrame;
         private Rectangle frameRect;
-        private double frameElapsedTime, currentLerpPercentage;
+        private double frameElapsedTime;
         private SpriteBatch spriteBatch;
+        private float currentRange, totalRange;
         public Attack(Game1 g): base(g)
         {
             this.g = g;
@@ -37,13 +37,10 @@ namespace TileGame
         public void SetAttack(Vector2 startPosition, Vector2 endPosition, float range)
         {
             isActive = true;
-            this.startPosition = startPosition;
             currentPosition = startPosition;
-            this.endPosition = endPosition;
-            this.range = range;
-            distance = Character.CharacterBehaviour.GetDistance(startPosition, endPosition);
-            lerpPercentageRequired = range / distance;
-            currentLerpPercentage = 0;
+            direction = Vector2.Normalize(endPosition - startPosition);
+            currentRange = 0;
+            totalRange = range;
         }
 
         public override void Update(GameTime gameTime)
@@ -73,10 +70,10 @@ namespace TileGame
                     frameElapsedTime = 0;
                     base.Update(gameTime);
                 }
-                if (currentLerpPercentage < lerpPercentageRequired)
+                if (currentRange < totalRange)
                 {
-                    currentLerpPercentage += 0.01f;
-                    currentPosition = Vector2.Lerp(startPosition, endPosition, (float)currentLerpPercentage);
+                    currentRange += 4;
+                    currentPosition += direction * 4;
                 }
                 else
                 {

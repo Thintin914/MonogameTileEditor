@@ -255,14 +255,16 @@ namespace TileGame
         {
             public string name;
             private float range, attackWaitTime, speed;
+            public TileMap.CharacterData respectiveData;
 
-            public CharacterBehaviour(Game1 g, int ID, Vector2 position): base (g, ID, position)
+            public CharacterBehaviour(Game1 g, int ID, Vector2 position, TileMap.CharacterData respectiveData): base (g, ID, position)
             {
                 name = fileName;
                 CharacterSettings tempSettings = SetRange(name);
                 range = tempSettings.range;
                 attackWaitTime = tempSettings.attackWaitTime;
                 speed = tempSettings.speed;
+                this.respectiveData = respectiveData;
             }
             public override void Initialize()
             {
@@ -284,7 +286,7 @@ namespace TileGame
                 switch (name)
                 {
                     case "person1":
-                        return new CharacterSettings(60, 1, 2);
+                        return new CharacterSettings(120, 1, 2);
                 }
                 return new CharacterSettings(60, 0.5f, 1);
             }
@@ -325,7 +327,7 @@ namespace TileGame
                             currentAnimation = AnimationType.attack;
                             int attackIndex = g.GetInactiveAttack(ref g.enemyAttacks);
                             if (attackIndex != -1) {
-                                g.enemyAttacks[attackIndex].SetAttack(position, g.player.position, range * 2);
+                                g.enemyAttacks[attackIndex].SetAttack(position, g.player.position, range);
                             }
                         }
                         else if (needAttackRest)

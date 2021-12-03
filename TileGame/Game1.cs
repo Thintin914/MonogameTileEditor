@@ -23,7 +23,7 @@ namespace TileGame
         public Vector2 mousePosition;
         private ButtonState LastMouseButtonState = ButtonState.Released;
 
-        private bool clicked, isWithinMap;
+        public bool clicked, isWithinMap;
         public List<Button> UIButtons = new List<Button>();
         public Rectangle mapRect;
         public enum GameState { tileMode, hitboxMode, playMode, entityMode, entityRemoveMode, entityPlantMode, characterMode, characterPlantMode, characterRemoveMode};
@@ -44,6 +44,8 @@ namespace TileGame
         private SortingLayer[] sortingLayers;
 
         public Attack[] enemyAttacks;
+
+        private InputField inputField;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -159,7 +161,7 @@ namespace TileGame
             LoadMapEntity();
             for(int i = 0; i < currentMap.characterData.Count; i++)
             {
-                mapCharacters.Add(new Character.CharacterBehaviour(this, currentMap.characterData[i].ID, new Vector2(currentMap.characterData[i].x, currentMap.characterData[i].y)));
+                mapCharacters.Add(new Character.CharacterBehaviour(this, currentMap.characterData[i].ID, new Vector2(currentMap.characterData[i].x, currentMap.characterData[i].y), currentMap.characterData[i]));
                 Components.Add(mapCharacters[mapCharacters.Count - 1]);
             }
             mapOffset = new Vector2(GraphicsDevice.Viewport.Width * 0.5f - currentMap.x * currentMap.size * 0.5f, GraphicsDevice.Viewport.Height * 0.5f - currentMap.y * currentMap.size * 0.5f);
@@ -238,7 +240,7 @@ namespace TileGame
                         currentMap.hitbox[index] = (currentMap.hitbox[index] + 1) % 2;
                     }
                 }
-                else if (gameState == GameState.characterPlantMode)
+                else if (gameState == GameState.characterPlantMode && plantingCharacter != null)
                 {
                     plantingCharacter.position = mouseGridPosition;
                     if (clicked && index < currentMap.tileCostume.Count && index > -1)
@@ -246,11 +248,19 @@ namespace TileGame
                         Components.Remove(plantingCharacter);
                         currentMap.characterData.Add(new TileMap.CharacterData(plantingCharacter.ID, plantingCharacter.position.X, plantingCharacter.position.Y));
                         plantingCharacter.Dispose();
-                        mapCharacters.Add(new Character.CharacterBehaviour(this, plantingCharacter.ID, plantingCharacter.position));
+                        mapCharacters.Add(new Character.CharacterBehaviour(this, plantingCharacter.ID, plantingCharacter.position, currentMap.characterData[currentMap.characterData.Count - 1]));
                         Components.Add(mapCharacters[mapCharacters.Count - 1]);
+                        if (plantingCharacter.fileName == "portal1")
+                        {
+                            inputField = new InputField(this, plantingCharacter.position + new Vector2(0, 1) * 25, currentMap.characterData[currentMap.characterData.Count - 1]);
+                            Components.Add(inputField);
+                        }
+                        else
+                        {
+                            SetButtonActive(GameState.characterMode, "ToCharacterModeButton");
+                            characterTable.SetCharacterPage(characterTable.page);
+                        }
                         plantingCharacter = null;
-                        SetButtonActive(GameState.characterMode, "ToCharacterModeButton");
-                        characterTable.SetCharacterPage(characterTable.page);
                     }
                 }
             }
@@ -447,7 +457,7 @@ namespace TileGame
                         SetButtonActive(GameState.entityMode, "ToEntityModeButton");
                     }
                 }
-                else if (gameState == GameState.characterPlantMode)
+                else if (gameState == GameState.characterPlantMode && plantingCharacter != null)
                 {
                     _spriteBatch.Draw(plantingCharacter.texture, mouseGridPosition - plantingCharacter.center, plantingCharacter.frameRect, Color.White);
                 }

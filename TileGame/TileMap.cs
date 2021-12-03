@@ -35,6 +35,7 @@ namespace TileGame
             public int ID { get; set; }
             public float x { get; set; }
             public float y { get; set; }
+            public string extra { get; set;}
             public CharacterData(int ID, float x, float y)
             {
                 this.ID = ID;
