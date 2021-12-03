@@ -181,7 +181,7 @@ namespace TileGame
         private bool IsMovable()
         {
             SetGridIndex();
-            if (Game1.IsWithinRectangle(footPosition, g.mapRect) && g.currentMap.hitbox[gridIndex] != 1 && g.currentMap.tileCostume[gridIndex] != 0 && !DoesGridContainsCharacter(gridIndex))
+            if (Game1.IsWithinRectangle(position, g.mapRect) && g.currentMap.hitbox[gridIndex] != 1 && g.currentMap.tileCostume[gridIndex] != 0 && !DoesGridContainsCharacter(gridIndex))
             {
                 return true;
             }

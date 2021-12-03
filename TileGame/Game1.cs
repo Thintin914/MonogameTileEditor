@@ -42,6 +42,8 @@ namespace TileGame
 
         public Player player;
         private SortingLayer[] sortingLayers;
+
+        private Attack testAttack;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -85,6 +87,10 @@ namespace TileGame
 
             player = new Player(this, new Vector2(GraphicsDevice.Viewport.Width * 0.5f, GraphicsDevice.Viewport.Height * 0.4f));
             Components.Add(player);
+
+            testAttack = new Attack(this);
+            Components.Add(testAttack);
+            testAttack.SetAttack(90, 32, new Vector2(120, 500));
 
             SetButtonActive(gameState, UIButtons[1].name);
             base.Initialize();
@@ -192,10 +198,6 @@ namespace TileGame
             }
             LastMouseButtonState = ms.LeftButton;
 
-            if (gameState == GameState.characterPlantMode)
-            {
-                plantingCharacter.position = mouseGridPosition;
-            }
             if (isWithinMap)
             {
                 index = currentMap.GetTileIndexFromPosition(mouseGridPosition.X, mouseGridPosition.Y, mapOffset.X, mapOffset.Y);
@@ -226,6 +228,7 @@ namespace TileGame
                 }
                 else if (gameState == GameState.characterPlantMode)
                 {
+                    plantingCharacter.position = mouseGridPosition;
                     if (clicked && index < currentMap.tileCostume.Count && index > -1)
                     {
                         Components.Remove(plantingCharacter);
@@ -363,7 +366,6 @@ namespace TileGame
             }
             depth = (float)player.gridIndex / mapSize;
             sortingLayers[currentIndex] = new SortingLayer(depth, SortingLayer.ListName.player);
-            //Array.Sort(sortingLayers, delegate (SortingLayer x, SortingLayer y) { return x.layerDepth.CompareTo(y.layerDepth); });
             return totalObject;
         }
         protected override void Draw(GameTime gameTime)
@@ -432,6 +434,10 @@ namespace TileGame
                         plantingEntity = null;
                         SetButtonActive(GameState.entityMode, "ToEntityModeButton");
                     }
+                }
+                else if (gameState == GameState.characterPlantMode)
+                {
+                    _spriteBatch.Draw(plantingCharacter.texture, mouseGridPosition - plantingCharacter.center, plantingCharacter.frameRect, Color.White);
                 }
             }
             _spriteBatch.Draw(whiteRectangle, mousePosition, null, Color.White, 0f, Vector2.Zero, 5, SpriteEffects.None, 0f);

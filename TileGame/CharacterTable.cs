@@ -153,6 +153,8 @@ namespace TileGame
                     {
                         spriteBatch.Draw(whiteRectangle, descriptionRect[i].selectRect, Color.White);
                     }
+                    if (descriptionRect[i].character != null)
+                        spriteBatch.Draw(descriptionRect[i].character.texture, descriptionRect[i].character.position - descriptionRect[i].character.center, descriptionRect[i].character.frameRect, Color.White);
                 }
                 spriteBatch.End();
                 base.Draw(gameTime);
