@@ -3,20 +3,21 @@ using System.Collections.Generic;
 using System.Text;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System.Diagnostics;
 
 namespace TileGame
 {
-    class Attack: DrawableGameComponent
+    public class Attack: DrawableGameComponent
     {
         private Game1 g;
-        private Vector2 position;
+        private Vector2 startPosition, endPosition, currentPosition;
+        private float range, distance, lerpPercentageRequired;
         private Texture2D texture;
-        private float direction, distance;
         public bool isActive;
         private bool isForward = true;
         private int currentFrame, totalFrame;
         private Rectangle frameRect;
-        private double frameElapsedTime;
+        private double frameElapsedTime, currentLerpPercentage;
         private SpriteBatch spriteBatch;
         public Attack(Game1 g): base(g)
         {
@@ -33,17 +34,16 @@ namespace TileGame
             frameRect = new Rectangle(0, 0, texture.Width / (totalFrame + 1), texture.Height);
         }
 
-        public void SetAttack(float direction, float distance, Vector2 startPosition)
+        public void SetAttack(Vector2 startPosition, Vector2 endPosition, float range)
         {
             isActive = true;
-            this.direction = direction % 1;
-            this.distance = distance;
-            position = startPosition;
-        }
-
-        private Vector2 MoveToward(float direction, Vector2 position)
-        {
-            return new Vector2(MathF.Sin(direction), MathF.Cos(direction));
+            this.startPosition = startPosition;
+            currentPosition = startPosition;
+            this.endPosition = endPosition;
+            this.range = range;
+            distance = Character.CharacterBehaviour.GetDistance(startPosition, endPosition);
+            lerpPercentageRequired = range / distance;
+            currentLerpPercentage = 0;
         }
 
         public override void Update(GameTime gameTime)
@@ -73,7 +73,15 @@ namespace TileGame
                     frameElapsedTime = 0;
                     base.Update(gameTime);
                 }
-                position += MoveToward(direction, position) * 0.5f;
+                if (currentLerpPercentage < lerpPercentageRequired)
+                {
+                    currentLerpPercentage += 0.01f;
+                    currentPosition = Vector2.Lerp(startPosition, endPosition, (float)currentLerpPercentage);
+                }
+                else
+                {
+                    isActive = false;
+                }
             }
         }
 
@@ -83,7 +91,7 @@ namespace TileGame
             {
                 base.Draw(gameTime);
                 spriteBatch.Begin();
-                spriteBatch.Draw(texture, position, frameRect, Color.White);
+                spriteBatch.Draw(texture, currentPosition, frameRect, Color.White);
                 spriteBatch.End();
             }
         }

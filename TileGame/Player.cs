@@ -145,6 +145,8 @@ namespace TileGame
             if (ks.IsKeyDown(Keys.Space) && !lastKeyboardState.IsKeyDown(Keys.Space))
             {
                 await DoAnimation(Character.AnimationType.attack, gameTime);
+                currentAnimation = Character.AnimationType.idle;
+                Debug.WriteLine("0");
             }
             footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.4f;
             gridPosition = TileMap.ToGrid(footPosition, g.currentMap.size);

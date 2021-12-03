@@ -43,7 +43,7 @@ namespace TileGame
         public Player player;
         private SortingLayer[] sortingLayers;
 
-        private Attack testAttack;
+        public Attack[] enemyAttacks;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -88,11 +88,14 @@ namespace TileGame
             player = new Player(this, new Vector2(GraphicsDevice.Viewport.Width * 0.5f, GraphicsDevice.Viewport.Height * 0.4f));
             Components.Add(player);
 
-            testAttack = new Attack(this);
-            Components.Add(testAttack);
-            testAttack.SetAttack(90, 32, new Vector2(120, 500));
-
             SetButtonActive(gameState, UIButtons[1].name);
+
+            enemyAttacks = new Attack[8];
+            for(int i = 0; i < enemyAttacks.Length; i++)
+            {
+                enemyAttacks[i] = new Attack(this);
+                Components.Add(enemyAttacks[i]);
+            }
             base.Initialize();
         }
 
@@ -141,6 +144,15 @@ namespace TileGame
                     Components.Add(mapEntities[i]);
                 }
             }
+        }
+        public int GetInactiveAttack(ref Attack[] attacks)
+        {
+            for(int i = 0; i < attacks.Length; i++)
+            {
+                if ( attacks[i].isActive == false)
+                    return i;
+            }
+            return -1;
         }
         private void SetMapOffset()
         {

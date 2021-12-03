@@ -323,6 +323,10 @@ namespace TileGame
                         {
                             hasAttacked = true;
                             currentAnimation = AnimationType.attack;
+                            int attackIndex = g.GetInactiveAttack(ref g.enemyAttacks);
+                            if (attackIndex != -1) {
+                                g.enemyAttacks[attackIndex].SetAttack(position, g.player.position, range * 2);
+                            }
                         }
                         else if (needAttackRest)
                         {
