@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Diagnostics;
 using Microsoft.Xna.Framework.Input;
+using System.Threading.Tasks;
 
 namespace TileGame
 {
@@ -74,6 +75,10 @@ namespace TileGame
                     allAnimations[0] = new CharacterAnimation(AnimationType.idle, 1, 3);
                     allAnimations[1] = new CharacterAnimation(AnimationType.walk, 4, 6);
                     allAnimations[2] = new CharacterAnimation(AnimationType.attack, 7, 9);
+                    break;
+                default:
+                    fileName = "coin";
+                    allAnimations[0] = new CharacterAnimation(AnimationType.idle, 1, 4);
                     break;
             }
             totalFrame = GetTotalFrame(ref allAnimations);
@@ -259,7 +264,7 @@ namespace TileGame
             public TileMap.CharacterData respectiveData;
             private string[] extraSettings;
             private KeyboardState lastKeyboardState;
-
+            private bool isDelayReady;
             public CharacterBehaviour(Game1 g, int ID, Vector2 position, TileMap.CharacterData respectiveData): base (g, ID, position)
             {
                 name = fileName;
@@ -272,6 +277,16 @@ namespace TileGame
                 {
                     extraSettings = respectiveData.extra.Split(", ");
                 }
+                PerformDelay();
+            }
+            private async void PerformDelay()
+            {
+                await StartDelay();
+            }
+            private async Task StartDelay()
+            {
+                await Task.Delay(1000);
+                isDelayReady = true;
             }
             public override void Initialize()
             {
@@ -316,21 +331,23 @@ namespace TileGame
             public override void Update(GameTime gameTime)
             {
                 base.Update(gameTime);
-                KeyboardState ks = Keyboard.GetState();
                 if (name == "portal1")
                 {
-                    if (GetDistance(position, g.player.footPosition) < 42)
+                    if (GetDistance(position, g.player.footPosition) < 42 && isDelayReady)
                     {
                         if (extraSettings.Length == 2)
                         {
+                            KeyboardState ks = Keyboard.GetState();
                             if (ks.IsKeyDown(Keys.Space) && !lastKeyboardState.IsKeyDown(Keys.Space))
                             {
                                 g.CreateNewMap(extraSettings[0]);
+                                int index = int.Parse(extraSettings[1]);
+                                Vector2 playerPosition = new Vector2(g.currentMap.GetTileX(index), g.currentMap.GetTileY(index)) * g.currentMap.size + g.mapOffset;
+                                g.player.position = playerPosition;
+                                g.player.pastStandablePosition = playerPosition;
                             }
+                            lastKeyboardState = ks;
                         }
-                    }
-                    else
-                    {
                         rotate = (rotate + 0.1f) % 360;
                     }
                 }
@@ -361,7 +378,6 @@ namespace TileGame
                         }
                     }
                 }
-                lastKeyboardState = ks;
             }
         }
     }

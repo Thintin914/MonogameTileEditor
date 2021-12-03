@@ -46,6 +46,7 @@ namespace TileGame
         public Attack[] enemyAttacks;
 
         public InputField inputField;
+        private SpriteFont basicFont;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -109,6 +110,7 @@ namespace TileGame
 
             // TODO: use this.Content to load your game content here
             selectGrid = Content.Load<Texture2D>("Tiles\\select");
+            basicFont = Content.Load<SpriteFont>("BasicFont");
             whiteRectangle = new Texture2D(GraphicsDevice, 1, 1);
             whiteRectangle.SetData(new[] { Color.White});
 
@@ -124,8 +126,7 @@ namespace TileGame
             tileCostumes[8] = Content.Load<Texture2D>("Tiles\\dirtPath");
             tileCostumes[9] = Content.Load<Texture2D>("Tiles\\deepWater");
 
-            CreateNewMap("ONE", 20, 20);
-            SetMapOffset();
+            CreateNewMap("1", 20, 20);
         }
         private void LoadMapEntity()
         {
@@ -175,7 +176,7 @@ namespace TileGame
             if (File.Exists(mapName + ".txt"))
             {
                 TileMap tempMap = LoadTileMap(mapName);
-                currentMap = new TileMap(this, 20, 20, mapName);
+                currentMap = new TileMap(this, tempMap.x, tempMap.y, mapName);
             }
             else
             {
@@ -195,7 +196,8 @@ namespace TileGame
         private void SetMapOffset()
         {
             LoadMapEntity();
-            for(int i = 0; i < currentMap.characterData.Count; i++)
+            int characterCount = currentMap.characterData.Count;
+            for (int i = 0; i < characterCount; i++)
             {
                 mapCharacters.Add(new Character.CharacterBehaviour(this, currentMap.characterData[i].ID, new Vector2(currentMap.characterData[i].x, currentMap.characterData[i].y), currentMap.characterData[i]));
                 Components.Add(mapCharacters[mapCharacters.Count - 1]);
@@ -300,7 +302,6 @@ namespace TileGame
                     }
                 }
             }
-
             base.Update(gameTime);
         }
         public static bool IsWithinRectangle(Vector2 targetPosition, Rectangle rect)
@@ -497,6 +498,7 @@ namespace TileGame
                 if (gameState == GameState.tileMode || gameState == GameState.hitboxMode)
                 {
                     _spriteBatch.Draw(selectGrid, mouseGridPosition, Color.White);
+                    _spriteBatch.DrawString(basicFont, currentMap.GetTileIndexFromPosition(mouseGridPosition.X, mouseGridPosition.Y, mapOffset.X, mapOffset.Y).ToString(), mouseGridPosition - new Vector2(0, 1) * currentMap.size * 2, Color.White);
                 }
                 if (gameState == GameState.entityPlantMode)
                 {
