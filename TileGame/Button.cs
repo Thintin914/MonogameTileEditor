@@ -96,6 +96,11 @@ namespace TileGame
                 {
                     g.SetButtonActive(Game1.GameState.characterRemoveMode, name);
                 }
+                else if (name == "ToCreateNewMapMode")
+                {
+                    g.SetButtonActive(Game1.GameState.createNewMapMode, name);
+                    //g.ClearMap();
+                }
             }
         }
         protected override void LoadContent()

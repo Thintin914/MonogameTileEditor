@@ -26,7 +26,7 @@ namespace TileGame
         public bool clicked, isWithinMap;
         public List<Button> UIButtons = new List<Button>();
         public Rectangle mapRect;
-        public enum GameState { tileMode, hitboxMode, playMode, entityMode, entityRemoveMode, entityPlantMode, characterMode, characterPlantMode, characterRemoveMode};
+        public enum GameState { tileMode, hitboxMode, playMode, entityMode, entityRemoveMode, entityPlantMode, characterMode, characterPlantMode, characterRemoveMode, createNewMapMode};
         public GameState gameState;
         public delegate void ClickAction();
         public static event ClickAction OnClick;
@@ -80,6 +80,8 @@ namespace TileGame
             Components.Add(UIButtons[5]);
             UIButtons.Add(new Button(this, "ToCharacterRemoveMode", "To Character Remove Mode", new Vector2(5, 250)));
             Components.Add(UIButtons[6]);
+            UIButtons.Add(new Button(this, "ToCreateNewMapMode", "To Create New Map Mode", new Vector2(5, 290)));
+            Components.Add(UIButtons[7]);
 
             entityTable = new EntityTable(this);
             Components.Add(entityTable);
@@ -146,6 +148,19 @@ namespace TileGame
                     Components.Add(mapEntities[i]);
                 }
             }
+        }
+        public void ClearMap()
+        {
+            for (int i = 0; i < mapEntities.Count; i++)
+            {
+                if (mapEntities[i] != null)
+                {
+                    Components.Remove(mapEntities[i]);
+                    mapEntities[i].Dispose();
+                }
+            }
+            if (mapEntities.Count > 0)
+                mapEntities.Clear();
         }
         public int GetInactiveAttack(ref Attack[] attacks)
         {
@@ -413,18 +428,16 @@ namespace TileGame
                     if (IsWithinRectangle(mousePosition, removeRect))
                     {
                         _spriteBatch.Draw(whiteRectangle, removeRect, Color.Salmon);
-                        if (clicked)
-                        {
-                            removeIndex = i;
-                        }
+                        removeIndex = i;
+                        break;
                     }
                 }
-                if (removeIndex != -1)
+                if (clicked && removeIndex != -1)
                 {
                     currentMap.entityData.RemoveAt(removeIndex);
                 }
             }
-            if (gameState == GameState.hitboxMode)
+            else if (gameState == GameState.hitboxMode)
             {
                 for (int i = 0; i < currentMap.x * currentMap.y; i++)
                 {
@@ -435,6 +448,29 @@ namespace TileGame
                     }
                 }
             }
+            else if (gameState == GameState.characterRemoveMode)
+            {
+                int removeIndex = -1;
+                for(int i = 0; i < mapCharacters.Count; i++)
+                {
+                    Rectangle removeRect = new Rectangle((int)(mapCharacters[i].position.X - mapCharacters[i].center.X), (int)(mapCharacters[i].position.Y - mapCharacters[i].center.Y), mapCharacters[i].frameRect.Width, mapCharacters[i].frameRect.Height);
+                    if (IsWithinRectangle(mousePosition, removeRect))
+                    {
+                        _spriteBatch.Draw(whiteRectangle, removeRect, Color.Salmon);
+                        removeIndex = i;
+                        break;
+                    }
+                }
+                if (clicked && removeIndex != -1)
+                {
+                    currentMap.characterData.Remove(mapCharacters[removeIndex].respectiveData);
+                    Components.Remove(mapCharacters[removeIndex]);
+                    mapCharacters[removeIndex].Dispose();
+                    mapCharacters[removeIndex] = null;
+                    mapCharacters.Remove(mapCharacters[removeIndex]);
+                }
+            }
+
             if (isWithinMap)
             {
                 if (gameState == GameState.tileMode || gameState == GameState.hitboxMode)
