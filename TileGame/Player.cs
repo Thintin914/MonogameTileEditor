@@ -147,7 +147,7 @@ namespace TileGame
                 await DoAnimation(Character.AnimationType.attack, gameTime);
                 currentAnimation = Character.AnimationType.idle;
             }
-            footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.4f;
+            footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.5f;
             gridPosition = TileMap.ToGrid(footPosition, g.currentMap.size);
             gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
             if (Game1.IsWithinRectangle(footPosition + velocity * speed, g.mapRect) && g.currentMap.hitbox[gridIndex] != 1)

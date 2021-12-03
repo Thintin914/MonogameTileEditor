@@ -72,8 +72,8 @@ namespace TileGame
                 }
                 if (currentRange < totalRange)
                 {
-                    currentRange += 4;
-                    currentPosition += direction * 4;
+                    currentRange += 3;
+                    currentPosition += direction * 3;
                 }
                 else
                 {

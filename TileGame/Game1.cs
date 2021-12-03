@@ -427,9 +427,10 @@ namespace TileGame
             sortingLayers[currentIndex] = new SortingLayer(depth, SortingLayer.ListName.player);
             return totalObject;
         }
+        private Color bgColor = new Color(18, 18, 33);
         protected override void Draw(GameTime gameTime)
         {
-            GraphicsDevice.Clear(Color.CornflowerBlue);
+            GraphicsDevice.Clear(bgColor);
 
             // TODO: Add your drawing code here
             _spriteBatch.Begin();
@@ -534,7 +535,7 @@ namespace TileGame
                 if (sortingLayers[i].name == SortingLayer.ListName.entity && mapEntities.Count > 0)
                 {
                     int entityIndex = FindIndexWithNameInList(EntityTable.GetEntityStatus(currentMap.entityData[currentEntityIndex].ID).name, ref mapEntities);
-                    Vector2 entityPosition = new Vector2(currentMap.GetTileX(currentMap.entityData[currentEntityIndex].indexPosition), currentMap.GetTileY(currentMap.entityData[currentEntityIndex].indexPosition)) * currentMap.size - mapEntities[entityIndex].entityDetails.partialCenter - new Vector2(0, 1) * mapEntities[entityIndex].entityDetails.entityWholeTexture.Height * 0.4f + mapOffset;
+                    Vector2 entityPosition = new Vector2(currentMap.GetTileX(currentMap.entityData[currentEntityIndex].indexPosition), currentMap.GetTileY(currentMap.entityData[currentEntityIndex].indexPosition)) * currentMap.size - mapEntities[entityIndex].entityDetails.partialCenter - new Vector2(0, 1) * mapEntities[entityIndex].entityDetails.entityWholeTexture.Height * 0.5f + mapOffset;
                     _spriteBatch.Draw(mapEntities[entityIndex].entityDetails.entityWholeTexture, entityPosition, mapEntities[entityIndex].entityDetails.frameRect, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, sortingLayers[i].layerDepth);
                     currentEntityIndex++;
                 }

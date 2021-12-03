@@ -180,7 +180,7 @@ namespace TileGame
         }
         private void SetGridIndex()
         {
-            footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.4f;
+            footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.5f;
             gridPosition = TileMap.ToGrid(footPosition + velocity, g.currentMap.size);
             gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
         }
