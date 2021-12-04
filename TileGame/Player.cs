@@ -5,7 +5,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Diagnostics;
-using System.Threading.Tasks;
 
 namespace TileGame
 {
@@ -19,15 +18,16 @@ namespace TileGame
         private float speed = 3f;
         private KeyboardState lastKeyboardState;
 
-        public Rectangle frameRect;
-        private double frameElapsedTime;
+        public Rectangle frameRect, HPRect, barRect;
+        private double frameElapsedTime, invincibleTime;
         private bool isForward = true;
-        public bool isRight;
+        public Color currentColor;
+        private Color hitColor;
+        public SpriteEffects flipside;
         private int currentFrame, poseStartFrame, poseEndFrame, totalFrame;
-        public int gridIndex;
+        public int gridIndex, HP, maxHP = 3;
         public Character.AnimationType currentAnimation, lastAnimation;
         public Character.CharacterAnimation[] allAnimations;
-
         public Player(Game1 g, Vector2 position): base(g)
         {
             this.g = g;
@@ -46,6 +46,15 @@ namespace TileGame
             texture = g.Content.Load<Texture2D>("Characters\\person1");
             frameRect = new Rectangle(0, 0, texture.Width / (totalFrame + 1), texture.Height);
             center = new Vector2(frameRect.Width * 0.5f, frameRect.Height * 0.5f);
+            currentColor = Color.White;
+            hitColor = new Color(255, 66, 148);
+            HP = maxHP;
+            HPRect = new Rectangle((int)(position.X - center.X), (int)(position.Y - center.Y - 10), frameRect.Width, 5);
+            barRect = HPRect;
+            barRect.X -= 1;
+            barRect.Y -= 1;
+            barRect.Width += 2;
+            barRect.Height += 2;
         }
         private void SetFrameDetails(Character.AnimationType pose)
         {
@@ -75,41 +84,27 @@ namespace TileGame
                 poseEndFrame = 1;
             }
         }
-        private async Task DoAnimation(Character.AnimationType animation, GameTime gameTime)
-        {
-            SetFrameDetails(animation);
-            lastAnimation = currentAnimation;
-            currentFrame = poseStartFrame;
-            isForward = true;
-            while (currentFrame < poseEndFrame)
-            {
-                frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
-                if (frameElapsedTime >= Character.frameTimeStep)
-                {
-                    frameElapsedTime = 0;
-                    currentFrame++;
-                    frameRect.X = frameRect.Width * (currentFrame - 1);
-                }
-                await Task.Yield();
-            }
-            while (currentFrame > poseStartFrame)
-            {
-                frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
-                if (frameElapsedTime >= Character.frameTimeStep)
-                {
-                    frameElapsedTime = 0;
-                    currentFrame--;
-                    frameRect.X = frameRect.Width * (currentFrame - 1);
-                }
-                await Task.Yield();
-            }
-        }
-        public override async void Update(GameTime gameTime)
+        public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
             frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
             if (frameElapsedTime >= Character.frameTimeStep)
             {
+                if (currentColor == Color.White)
+                {
+                    for (int i = 0; i < g.enemyAttacks.Length; i++)
+                    {
+                        if (Game1.IsWithinRectangle(position, g.enemyAttacks[i].attackRect))
+                        {
+                            if (HP > 0)
+                                HP--;
+                            currentColor = hitColor;
+                            invincibleTime = gameTime.TotalGameTime.TotalSeconds;
+                            break;
+                        }
+                    }
+                }
+
                 if (currentAnimation != lastAnimation)
                 {
                     SetFrameDetails(currentAnimation);
@@ -144,8 +139,7 @@ namespace TileGame
             currentAnimation = Character.AnimationType.idle;
             if (ks.IsKeyDown(Keys.Space) && !lastKeyboardState.IsKeyDown(Keys.Space))
             {
-                await DoAnimation(Character.AnimationType.attack, gameTime);
-                currentAnimation = Character.AnimationType.idle;
+
             }
             footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.5f;
             gridPosition = TileMap.ToGrid(footPosition, g.currentMap.size);
@@ -167,13 +161,13 @@ namespace TileGame
                 {
                     currentAnimation = Character.AnimationType.walk;
                     velocity.X = -speed;
-                    isRight = false;
+                    flipside = SpriteEffects.FlipHorizontally;
                 }
                 if (ks.IsKeyDown(Keys.D))
                 {
                     currentAnimation = Character.AnimationType.walk;
                     velocity.X = speed;
-                    isRight = true;
+                    flipside = SpriteEffects.None;
                 }
             }
             else
@@ -187,6 +181,20 @@ namespace TileGame
                 velocity.X = 0;
             if (MathF.Abs(velocity.Y) < 0.1f)
                 velocity.Y = 0;
+
+            HPRect.X = (int)(position.X - center.X);
+            HPRect.Y = (int)(position.Y - center.Y - 10);
+            HPRect.Width = (int)((float)HP / (float)maxHP * frameRect.Width);
+            barRect.X = HPRect.X - 1;
+            barRect.Y = HPRect.Y - 1;
+            if (currentColor == hitColor && gameTime.TotalGameTime.TotalSeconds - invincibleTime > 1.5f)
+            {
+                currentColor = Color.White;
+            }
+            if (HP < 1)
+            {
+                HP = maxHP;
+            }
             lastKeyboardState = ks;
         }
     }

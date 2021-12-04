@@ -18,7 +18,7 @@ namespace TileGame
         public Texture2D texture;
         public Rectangle frameRect;
         private bool isAnimated, isForward = true, hasAttacked, needAttackRest;
-        public bool isRight;
+        public SpriteEffects flipside;
         private int currentFrame, poseStartFrame, poseEndFrame, totalFrame;
         public int ID, gridIndex;
         private double frameElapsedTime, attackChargingTime;
@@ -103,14 +103,14 @@ namespace TileGame
             {
                 if (speed != -1)
                     if (MathF.Abs(targetPosition.X - selfPosition.X) > speed * 2)
-                        isRight = true;
+                        flipside = SpriteEffects.None;
                 temp.X = 1;
             }
             else if (targetPosition.X < selfPosition.X)
             {
                 if (speed != -1)
                     if (MathF.Abs(targetPosition.X - selfPosition.X) > speed * 2)
-                        isRight = false;
+                        flipside = SpriteEffects.FlipHorizontally;
                 temp.X = -1;
             }
             if (targetPosition.Y > selfPosition.Y)

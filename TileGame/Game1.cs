@@ -541,26 +541,15 @@ namespace TileGame
                 }
                 else if (sortingLayers[i].name == SortingLayer.ListName.character)
                 {
-                    if (mapCharacters[currentCharacterIndex].isRight)
-                    {
-                        _spriteBatch.Draw(mapCharacters[currentCharacterIndex].texture, mapCharacters[currentCharacterIndex].position, mapCharacters[currentCharacterIndex].frameRect, Color.White, mapCharacters[currentCharacterIndex].rotate, mapCharacters[currentCharacterIndex].center, 1, SpriteEffects.None, sortingLayers[i].layerDepth);
-                    }
-                    else
-                    {
-                        _spriteBatch.Draw(mapCharacters[currentCharacterIndex].texture, mapCharacters[currentCharacterIndex].position, mapCharacters[currentCharacterIndex].frameRect, Color.White, mapCharacters[currentCharacterIndex].rotate, mapCharacters[currentCharacterIndex].center, 1, SpriteEffects.FlipHorizontally, sortingLayers[i].layerDepth);
-                    }
+                    _spriteBatch.Draw(mapCharacters[currentCharacterIndex].texture, mapCharacters[currentCharacterIndex].position, mapCharacters[currentCharacterIndex].frameRect, Color.White, mapCharacters[currentCharacterIndex].rotate, mapCharacters[currentCharacterIndex].center, 1, mapCharacters[currentCharacterIndex].flipside, sortingLayers[i].layerDepth);
+
                     currentCharacterIndex++;
                 }
                 else if (sortingLayers[i].name == SortingLayer.ListName.player)
                 {
-                    if (player.isRight)
-                    {
-                        _spriteBatch.Draw(player.texture, player.position - player.center, player.frameRect, Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, sortingLayers[i].layerDepth);
-                    }
-                    else
-                    {
-                        _spriteBatch.Draw(player.texture, player.position - player.center, player.frameRect, Color.White, 0, Vector2.Zero, 1, SpriteEffects.FlipHorizontally, sortingLayers[i].layerDepth);
-                    }
+                    _spriteBatch.Draw(player.texture, player.position - player.center, player.frameRect, player.currentColor, 0, Vector2.Zero, 1, player.flipside, sortingLayers[i].layerDepth);
+                    _spriteBatch.Draw(whiteRectangle, player.barRect, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
+                    _spriteBatch.Draw(whiteRectangle, player.HPRect, null, Color.Red, 0, Vector2.Zero, SpriteEffects.None, 1);
                 }
             }
             _spriteBatch.End();

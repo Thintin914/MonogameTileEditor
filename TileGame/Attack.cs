@@ -10,15 +10,18 @@ namespace TileGame
     public class Attack: DrawableGameComponent
     {
         private Game1 g;
-        private Vector2 currentPosition, direction;
-        private Texture2D texture;
+        public Vector2 currentPosition;
+        private Vector2 direction, center;
+        public Texture2D texture;
         public bool isActive;
         private bool isForward = true;
         private int currentFrame, totalFrame;
+        public Rectangle attackRect;
         private Rectangle frameRect;
         private double frameElapsedTime;
         private SpriteBatch spriteBatch;
         private float currentRange, totalRange;
+        private SpriteEffects flipside;
         public Attack(Game1 g): base(g)
         {
             this.g = g;
@@ -32,6 +35,7 @@ namespace TileGame
             currentFrame = 0;
             totalFrame = 3;
             frameRect = new Rectangle(0, 0, texture.Width / (totalFrame + 1), texture.Height);
+            center = new Vector2(frameRect.Width * 0.5f, frameRect.Height * 0.5f);
         }
 
         public void SetAttack(Vector2 startPosition, Vector2 endPosition, float range)
@@ -41,6 +45,15 @@ namespace TileGame
             direction = Vector2.Normalize(endPosition - startPosition);
             currentRange = 0;
             totalRange = range;
+            attackRect = new Rectangle((int)(currentPosition.X - center.X), (int)(currentPosition.Y - center.Y), (int)(frameRect.Width), frameRect.Height);
+            if (endPosition.X > startPosition.X)
+            {
+                flipside = SpriteEffects.None;
+            }
+            else
+            {
+                flipside = SpriteEffects.FlipHorizontally;
+            }
         }
 
         public override void Update(GameTime gameTime)
@@ -74,6 +87,8 @@ namespace TileGame
                 {
                     currentRange += 3;
                     currentPosition += direction * 3;
+                    attackRect.X = (int)(currentPosition.X - center.X);
+                    attackRect.Y = (int)(currentPosition.Y -center.Y);
                 }
                 else
                 {
@@ -88,7 +103,7 @@ namespace TileGame
             {
                 base.Draw(gameTime);
                 spriteBatch.Begin();
-                spriteBatch.Draw(texture, currentPosition, frameRect, Color.White);
+                spriteBatch.Draw(texture, currentPosition - center, frameRect, Color.White, 0, Vector2.Zero, 1, flipside, 0);
                 spriteBatch.End();
             }
         }
