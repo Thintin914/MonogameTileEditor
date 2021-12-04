@@ -5,10 +5,12 @@
   <Config />
   <SourceFiles>
     <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Attacks/attack1.png</File>
+    <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Attacks/attack2.png</File>
     <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/BasicFont.spritefont</File>
     <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Characters/coin.png</File>
     <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Characters/person1.png</File>
     <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Characters/portal1.png</File>
+    <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Characters/slime.png</File>
     <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/GameEntities/grass.png</File>
     <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/GameEntities/shroom1.png</File>
     <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/GameEntities/shroom2.png</File>
@@ -26,6 +28,8 @@
     <File>C:/Users/ttca9/source/repos/TileGame/TileGame/Content/Tiles/waterTopRight.png</File>
   </SourceFiles>
   <DestFiles>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

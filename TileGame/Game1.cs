@@ -19,8 +19,8 @@ namespace TileGame
         private int totalTile = 10, storingTileID;
 
         private Texture2D selectGrid, whiteRectangle;
-        public Vector2 mouseGridPosition, mapOffset;
-        public Vector2 mousePosition;
+        public Vector2 mouseGridPosition, mapOffset, mousePosition, playerRevivePosition;
+        public string playerReviveMapName;
         private ButtonState LastMouseButtonState = ButtonState.Released;
 
         public bool clicked, isWithinMap;
@@ -43,7 +43,7 @@ namespace TileGame
         public Player player;
         private SortingLayer[] sortingLayers;
 
-        public Attack[] enemyAttacks;
+        public Attack[] enemyAttacks, allyAttacks;
 
         public InputField inputField;
         private SpriteFont basicFont;
@@ -65,7 +65,7 @@ namespace TileGame
         protected override void Initialize()
         {
             // TODO: Add your initialization logic here
-            gameState = GameState.tileMode;
+            gameState = GameState.playMode;
 
             UIButtons.Add(new Button(this, "ToPlayModeButton", "To Play Mode", new Vector2(5, 10)));
             Components.Add(UIButtons[0]);
@@ -90,16 +90,19 @@ namespace TileGame
             characterTable = new CharacterTable(this);
             Components.Add(characterTable);
 
-            player = new Player(this, new Vector2(GraphicsDevice.Viewport.Width * 0.5f, GraphicsDevice.Viewport.Height * 0.4f));
-            Components.Add(player);
-
-            SetButtonActive(gameState, UIButtons[1].name);
+            SetButtonActive(gameState, UIButtons[0].name);
 
             enemyAttacks = new Attack[8];
             for(int i = 0; i < enemyAttacks.Length; i++)
             {
                 enemyAttacks[i] = new Attack(this);
                 Components.Add(enemyAttacks[i]);
+            }
+            allyAttacks = new Attack[8];
+            for (int i = 0; i < allyAttacks.Length; i++)
+            {
+                allyAttacks[i] = new Attack(this);
+                Components.Add(allyAttacks[i]);
             }
             base.Initialize();
         }
@@ -127,6 +130,10 @@ namespace TileGame
             tileCostumes[9] = Content.Load<Texture2D>("Tiles\\deepWater");
 
             CreateNewMap("1", 20, 20);
+            playerReviveMapName = "1";
+            playerRevivePosition = new Vector2(currentMap.GetTileX(101), currentMap.GetTileY(101)) * currentMap.size + mapOffset;
+            player = new Player(this, playerRevivePosition);
+            Components.Add(player);
         }
         private void LoadMapEntity()
         {
@@ -152,6 +159,20 @@ namespace TileGame
         }
         public void ClearMap()
         {
+            for(int i = 0; i < enemyAttacks.Length; i++)
+            {
+                if (enemyAttacks[i].isActive)
+                {
+                    enemyAttacks[i].isActive = false;
+                }
+            }
+            for (int i = 0; i < allyAttacks.Length; i++)
+            {
+                if (allyAttacks[i].isActive)
+                {
+                    allyAttacks[i].isActive = false;
+                }
+            }
             for (int i = 0; i < mapEntities.Count; i++)
             {
                 if (mapEntities[i] != null)
@@ -484,7 +505,7 @@ namespace TileGame
                         break;
                     }
                 }
-                if (clicked && removeIndex != -1)
+                if (clicked && removeIndex != -1 && mapCharacters[removeIndex].respectiveData != null)
                 {
                     currentMap.characterData.Remove(mapCharacters[removeIndex].respectiveData);
                     Components.Remove(mapCharacters[removeIndex]);
@@ -541,9 +562,13 @@ namespace TileGame
                 }
                 else if (sortingLayers[i].name == SortingLayer.ListName.character)
                 {
-                    _spriteBatch.Draw(mapCharacters[currentCharacterIndex].texture, mapCharacters[currentCharacterIndex].position, mapCharacters[currentCharacterIndex].frameRect, Color.White, mapCharacters[currentCharacterIndex].rotate, mapCharacters[currentCharacterIndex].center, 1, mapCharacters[currentCharacterIndex].flipside, sortingLayers[i].layerDepth);
-
-                    currentCharacterIndex++;
+                    _spriteBatch.Draw(mapCharacters[currentCharacterIndex].texture, mapCharacters[currentCharacterIndex].position, mapCharacters[currentCharacterIndex].frameRect, mapCharacters[currentCharacterIndex].currentColor, mapCharacters[currentCharacterIndex].rotate, mapCharacters[currentCharacterIndex].center, 1, mapCharacters[currentCharacterIndex].flipside, sortingLayers[i].layerDepth);
+                    if (mapCharacters[currentCharacterIndex].maxHP != 0 && mapCharacters[currentCharacterIndex].maxHP != mapCharacters[currentCharacterIndex].HP)
+                    {
+                        _spriteBatch.Draw(whiteRectangle, mapCharacters[currentCharacterIndex].barRect, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, sortingLayers[i].layerDepth);
+                        _spriteBatch.Draw(whiteRectangle, mapCharacters[currentCharacterIndex].HPRect, null, Color.Red, 0, Vector2.Zero, SpriteEffects.None, sortingLayers[i].layerDepth + 0.01f);
+                    }
+                        currentCharacterIndex++;
                 }
                 else if (sortingLayers[i].name == SortingLayer.ListName.player)
                 {

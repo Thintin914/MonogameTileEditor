@@ -229,3 +229,5 @@ C:\Users\a1\Desktop\MonogameTileEditor\TileGame\obj\Debug\netcoreapp3.1\TileGame
 C:\Users\a1\Desktop\MonogameTileEditor\TileGame\obj\Debug\netcoreapp3.1\TileGame.dll
 C:\Users\a1\Desktop\MonogameTileEditor\TileGame\obj\Debug\netcoreapp3.1\TileGame.pdb
 C:\Users\a1\Desktop\MonogameTileEditor\TileGame\obj\Debug\netcoreapp3.1\TileGame.genruntimeconfig.cache
+C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Attacks\attack2.xnb
+C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Characters\slime.xnb

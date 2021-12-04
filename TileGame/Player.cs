@@ -16,11 +16,11 @@ namespace TileGame
         private Vector2 gridPosition, velocity;
         public Vector2 center;
         private float speed = 3f;
-        private KeyboardState lastKeyboardState;
+        private MouseState lastMouseState;
 
         public Rectangle frameRect, HPRect, barRect;
         private double frameElapsedTime, invincibleTime;
-        private bool isForward = true;
+        private bool isForward = true, isAttacking;
         public Color currentColor;
         private Color hitColor;
         public SpriteEffects flipside;
@@ -84,6 +84,27 @@ namespace TileGame
                 poseEndFrame = 1;
             }
         }
+        private Vector2 GetNormalizedDirection(Vector2 targetPosition, Vector2 selfPosition)
+        {
+            Vector2 temp = Vector2.Zero;
+            if (targetPosition.X > selfPosition.X)
+            {
+                temp.X = 1;
+            }
+            else if (targetPosition.X < selfPosition.X)
+            {
+                temp.X = -1;
+            }
+            if (targetPosition.Y > selfPosition.Y)
+            {
+                temp.Y = 1;
+            }
+            else if (targetPosition.Y < selfPosition.Y)
+            {
+                temp.Y = -1;
+            }
+            return temp;
+        }
         public override void Update(GameTime gameTime)
         {
             base.Update(gameTime);
@@ -94,12 +115,13 @@ namespace TileGame
                 {
                     for (int i = 0; i < g.enemyAttacks.Length; i++)
                     {
-                        if (Game1.IsWithinRectangle(position, g.enemyAttacks[i].attackRect))
+                        if (g.enemyAttacks[i].isActive && Game1.IsWithinRectangle(position, g.enemyAttacks[i].attackRect))
                         {
                             if (HP > 0)
                                 HP--;
                             currentColor = hitColor;
                             invincibleTime = gameTime.TotalGameTime.TotalSeconds;
+                            velocity = -GetNormalizedDirection(g.enemyAttacks[i].currentPosition, position) * speed;
                             break;
                         }
                     }
@@ -117,6 +139,16 @@ namespace TileGame
                 if (isForward && currentFrame == poseEndFrame)
                 {
                     isForward = false;
+                    if (isAttacking)
+                    {
+                        currentAnimation = Character.AnimationType.idle;
+                        isAttacking = false;
+                        int attackIndex = g.GetInactiveAttack(ref g.allyAttacks);
+                        if (attackIndex != -1)
+                        {
+                            g.allyAttacks[attackIndex].SetAttack(position, g.mousePosition, 160, 1);
+                        }
+                    }
                 }
                 else if (!isForward && currentFrame == poseStartFrame)
                 {
@@ -136,44 +168,59 @@ namespace TileGame
             }
 
             KeyboardState ks = Keyboard.GetState();
-            currentAnimation = Character.AnimationType.idle;
-            if (ks.IsKeyDown(Keys.Space) && !lastKeyboardState.IsKeyDown(Keys.Space))
+            if (!isAttacking)
             {
-
-            }
-            footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.5f;
-            gridPosition = TileMap.ToGrid(footPosition, g.currentMap.size);
-            gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
-            if (Game1.IsWithinRectangle(footPosition + velocity * speed, g.mapRect) && g.currentMap.hitbox[gridIndex] != 1)
-            {
-                pastStandablePosition = position;
-                if (ks.IsKeyDown(Keys.W))
+                MouseState ms = Mouse.GetState();
+                if (ms.LeftButton == ButtonState.Pressed && lastMouseState.LeftButton != ButtonState.Pressed)
                 {
-                    currentAnimation = Character.AnimationType.walk;
-                    velocity.Y = -speed;
+                    isAttacking = true;
+                    currentAnimation = Character.AnimationType.attack;
+                    isForward = true;
+                    if (position.X > g.mousePosition.X)
+                        flipside = SpriteEffects.FlipHorizontally;
+                    else
+                        flipside = SpriteEffects.None;
                 }
-                if (ks.IsKeyDown(Keys.S))
+                footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.5f;
+                gridPosition = TileMap.ToGrid(footPosition, g.currentMap.size);
+                gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
+                if (!isAttacking  && Game1.IsWithinRectangle(footPosition + velocity * speed, g.mapRect) && g.currentMap.hitbox[gridIndex] != 1)
                 {
-                    currentAnimation = Character.AnimationType.walk;
-                    velocity.Y = speed;
+                    currentAnimation = Character.AnimationType.idle;
+                    pastStandablePosition = position;
+                    if (ks.IsKeyDown(Keys.W))
+                    {
+                        currentAnimation = Character.AnimationType.walk;
+                        if (velocity.Y > -speed)
+                            velocity.Y -= speed * 0.5f;
+                    }
+                    if (ks.IsKeyDown(Keys.S))
+                    {
+                        currentAnimation = Character.AnimationType.walk;
+                        if (velocity.Y < speed)
+                            velocity.Y += speed * 0.5f;
+                    }
+                    if (ks.IsKeyDown(Keys.A))
+                    {
+                        currentAnimation = Character.AnimationType.walk;
+                        if (velocity.X > -speed)
+                            velocity.X -= speed * 0.5f;
+                        flipside = SpriteEffects.FlipHorizontally;
+                    }
+                    if (ks.IsKeyDown(Keys.D))
+                    {
+                        currentAnimation = Character.AnimationType.walk;
+                        if (velocity.X < speed)
+                            velocity.X += speed * 0.5f;
+                        flipside = SpriteEffects.None;
+                    }
                 }
-                if (ks.IsKeyDown(Keys.A))
+                else
                 {
-                    currentAnimation = Character.AnimationType.walk;
-                    velocity.X = -speed;
-                    flipside = SpriteEffects.FlipHorizontally;
+                    position = pastStandablePosition;
+                    velocity = Vector2.Zero;
                 }
-                if (ks.IsKeyDown(Keys.D))
-                {
-                    currentAnimation = Character.AnimationType.walk;
-                    velocity.X = speed;
-                    flipside = SpriteEffects.None;
-                }
-            }
-            else
-            {
-                position = pastStandablePosition;
-                velocity = Vector2.Zero;
+                lastMouseState = ms;
             }
             position += velocity;
             velocity *= 0.9f;
@@ -194,8 +241,9 @@ namespace TileGame
             if (HP < 1)
             {
                 HP = maxHP;
+                g.CreateNewMap(g.playerReviveMapName);
+                position = g.playerRevivePosition;
             }
-            lastKeyboardState = ks;
         }
     }
 }

@@ -15,7 +15,7 @@ namespace TileGame
         public Texture2D texture;
         public bool isActive;
         private bool isForward = true;
-        private int currentFrame, totalFrame;
+        private int currentFrame, totalFrame, currentTextureID = 0;
         public Rectangle attackRect;
         private Rectangle frameRect;
         private double frameElapsedTime;
@@ -31,21 +31,38 @@ namespace TileGame
         {
             base.LoadContent();
             spriteBatch = new SpriteBatch(GraphicsDevice);
-            texture = g.Content.Load<Texture2D>("Attacks\\attack1");
-            currentFrame = 0;
-            totalFrame = 3;
-            frameRect = new Rectangle(0, 0, texture.Width / (totalFrame + 1), texture.Height);
-            center = new Vector2(frameRect.Width * 0.5f, frameRect.Height * 0.5f);
         }
-
-        public void SetAttack(Vector2 startPosition, Vector2 endPosition, float range)
+        private void SetFrame(int ID)
         {
+            switch (ID)
+            {
+                case 1:
+                    totalFrame = 3;
+                    break;
+                case 2:
+                    totalFrame = 1;
+                    break;
+                default:
+                    totalFrame = 1;
+                    break;
+            }
+        }
+        public void SetAttack(Vector2 startPosition, Vector2 endPosition, float range, int textureID)
+        {
+            if (currentTextureID != textureID)
+            {
+                texture = g.Content.Load<Texture2D>("Attacks\\attack" + textureID);
+                SetFrame(textureID);
+                frameRect = new Rectangle(0, 0, texture.Width / (totalFrame + 1), texture.Height);
+                center = new Vector2(frameRect.Width * 0.5f, frameRect.Height * 0.5f);
+            }
             isActive = true;
             currentPosition = startPosition;
             direction = Vector2.Normalize(endPosition - startPosition);
+            currentFrame = 0;
             currentRange = 0;
             totalRange = range;
-            attackRect = new Rectangle((int)(currentPosition.X - center.X), (int)(currentPosition.Y - center.Y), (int)(frameRect.Width), frameRect.Height);
+            attackRect = new Rectangle((int)(currentPosition.X - center.X - 5), (int)(currentPosition.Y - center.Y - 5), (int)(frameRect.Width + 10), frameRect.Height + 10);
             if (endPosition.X > startPosition.X)
             {
                 flipside = SpriteEffects.None;
@@ -60,35 +77,38 @@ namespace TileGame
         {
             if (isActive)
             {
-                frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
-                if (frameElapsedTime >= Character.frameTimeStep)
+                if (totalFrame > 1)
                 {
-                    if (isForward && currentFrame + 1 == totalFrame)
+                    frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
+                    if (frameElapsedTime >= Character.frameTimeStep)
                     {
-                        isForward = false;
+                        if (isForward && currentFrame + 1 == totalFrame)
+                        {
+                            isForward = false;
+                        }
+                        else if (!isForward && currentFrame == 0)
+                        {
+                            isForward = true;
+                        }
+                        if (isForward)
+                        {
+                            currentFrame += 1;
+                        }
+                        else
+                        {
+                            currentFrame -= 1;
+                        }
+                        frameRect.X = currentFrame * frameRect.Width;
+                        frameElapsedTime = 0;
+                        base.Update(gameTime);
                     }
-                    else if (!isForward && currentFrame == 0)
-                    {
-                        isForward = true;
-                    }
-                    if (isForward)
-                    {
-                        currentFrame += 1;
-                    }
-                    else
-                    {
-                        currentFrame -= 1;
-                    }
-                    frameRect.X = currentFrame * frameRect.Width;
-                    frameElapsedTime = 0;
-                    base.Update(gameTime);
                 }
                 if (currentRange < totalRange)
                 {
-                    currentRange += 3;
-                    currentPosition += direction * 3;
-                    attackRect.X = (int)(currentPosition.X - center.X);
-                    attackRect.Y = (int)(currentPosition.Y -center.Y);
+                    currentRange += 6;
+                    currentPosition += direction * 6;
+                    attackRect.X = (int)(currentPosition.X - center.X - 5);
+                    attackRect.Y = (int)(currentPosition.Y -center.Y - 5);
                 }
                 else
                 {
@@ -101,10 +121,13 @@ namespace TileGame
         {
             if (isActive)
             {
-                base.Draw(gameTime);
-                spriteBatch.Begin();
-                spriteBatch.Draw(texture, currentPosition - center, frameRect, Color.White, 0, Vector2.Zero, 1, flipside, 0);
-                spriteBatch.End();
+                if (texture != null)
+                {
+                    base.Draw(gameTime);
+                    spriteBatch.Begin();
+                    spriteBatch.Draw(texture, currentPosition - center, frameRect, Color.White, 0, Vector2.Zero, 1, flipside, 0);
+                    spriteBatch.End();
+                }
             }
         }
     }

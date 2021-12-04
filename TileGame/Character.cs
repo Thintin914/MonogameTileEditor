@@ -24,10 +24,11 @@ namespace TileGame
         private double frameElapsedTime, attackChargingTime;
         private Game1 g;
         public float rotate;
-
+        private float range;
+        private int attackTextureID;
         private Vector2 pastStandablePosition, footPosition, gridPosition;
         public Vector2 position, center, velocity;
-        public const int totalCharacter = 3;
+        public const int totalCharacter = 4;
         public const double frameTimeStep = 1000 / 8f;
 
         public Character(Game1 g, int ID, Vector2 position): base(g)
@@ -36,6 +37,7 @@ namespace TileGame
             this.ID = ID;
             this.position = position;
             SetCharacterVisualData(ID);
+            SetGridIndex();
         }
         public Character(Character c): base(c.g)
         {
@@ -43,6 +45,7 @@ namespace TileGame
             ID = c.ID;
             position = c.position;
             SetCharacterVisualData(ID);
+            SetGridIndex();
         }
         public class CharacterAnimation
         {
@@ -72,6 +75,12 @@ namespace TileGame
                     break;
                 case 2:
                     fileName = "person1";
+                    allAnimations[0] = new CharacterAnimation(AnimationType.idle, 1, 3);
+                    allAnimations[1] = new CharacterAnimation(AnimationType.walk, 4, 6);
+                    allAnimations[2] = new CharacterAnimation(AnimationType.attack, 7, 9);
+                    break;
+                case 3:
+                    fileName = "slime";
                     allAnimations[0] = new CharacterAnimation(AnimationType.idle, 1, 3);
                     allAnimations[1] = new CharacterAnimation(AnimationType.walk, 4, 6);
                     allAnimations[2] = new CharacterAnimation(AnimationType.attack, 7, 9);
@@ -171,7 +180,7 @@ namespace TileGame
             {
                 if (g.mapCharacters[i] != this && g.mapCharacters[i].gridIndex == gridIndex)
                 {
-                    position = pastStandablePosition;
+                    position = pastStandablePosition - velocity;
                     SetGridIndex();
                     return true;
                 }
@@ -181,16 +190,18 @@ namespace TileGame
         private void SetGridIndex()
         {
             footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.5f;
-            gridPosition = TileMap.ToGrid(footPosition + velocity, g.currentMap.size);
+            gridPosition = TileMap.ToGrid(position + velocity, g.currentMap.size);
             gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
         }
         private bool IsMovable()
         {
-            SetGridIndex();
-            if (gridIndex > -1 && gridIndex < g.currentMap.hitbox.Count)
+            Vector2 tempgridPosition = TileMap.ToGrid(position + velocity, g.currentMap.size);
+            int tempIndex = g.currentMap.GetTileIndexFromPosition(tempgridPosition.X, tempgridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
+            if (tempIndex > -1 && tempIndex < g.currentMap.hitbox.Count)
             {
-                if (Game1.IsWithinRectangle(position, g.mapRect) && g.currentMap.hitbox[gridIndex] != 1 && g.currentMap.tileCostume[gridIndex] != 0 && !DoesGridContainsCharacter(gridIndex))
+                if (Game1.IsWithinRectangle(position, g.mapRect) && g.currentMap.hitbox[tempIndex] != 1 && g.currentMap.tileCostume[tempIndex] != 0 && !DoesGridContainsCharacter(tempIndex))
                 {
+                    SetGridIndex();
                     return true;
                 }
             }
@@ -239,6 +250,11 @@ namespace TileGame
                             currentAnimation = AnimationType.idle;
                             attackChargingTime = gameTime.TotalGameTime.TotalSeconds;
                             velocity = -GetNormalizedDirection(g.player.footPosition, position) * 3;
+                            int attackIndex = g.GetInactiveAttack(ref g.enemyAttacks);
+                            if (attackIndex != -1)
+                            {
+                                g.enemyAttacks[attackIndex].SetAttack(position, g.player.position, range, attackTextureID);
+                            }
                         }
                     }
                     else if (!isForward && currentFrame == poseStartFrame)
@@ -263,23 +279,39 @@ namespace TileGame
         public class CharacterBehaviour: Character
         {
             public string name;
-            private float range, attackWaitTime, speed;
+            private float attackWaitTime, speed;
             public TileMap.CharacterData respectiveData;
             private string[] extraSettings;
             private KeyboardState lastKeyboardState;
             private bool isDelayReady;
-            public CharacterBehaviour(Game1 g, int ID, Vector2 position, TileMap.CharacterData respectiveData): base (g, ID, position)
+            public Color currentColor = Color.White;
+            private Color hitColor;
+            public int maxHP, HP;
+            private double invincibleTime;
+            public Rectangle HPRect, barRect;
+
+            public CharacterBehaviour(Game1 g, int ID, Vector2 position, TileMap.CharacterData respectiveData = null): base (g, ID, position)
             {
                 name = fileName;
                 CharacterSettings tempSettings = SetRange(name);
                 range = tempSettings.range;
                 attackWaitTime = tempSettings.attackWaitTime;
                 speed = tempSettings.speed;
+                maxHP = tempSettings.maxHP;
+                HP = tempSettings.maxHP;
+                attackTextureID = tempSettings.attackTextureID;
                 this.respectiveData = respectiveData;
-                if (respectiveData.extra != null)
+                if (respectiveData != null && respectiveData.extra != null)
                 {
                     extraSettings = respectiveData.extra.Split(", ");
                 }
+                hitColor = new Color(255, 66, 148);
+                HPRect = new Rectangle((int)(position.X - center.X), (int)(position.Y - center.Y - 10), frameRect.Width, 5);
+                barRect = HPRect;
+                barRect.X -= 1;
+                barRect.Y -= 1;
+                barRect.Width += 2;
+                barRect.Height += 2;
                 PerformDelay();
             }
             private async void PerformDelay()
@@ -298,7 +330,7 @@ namespace TileGame
             }
             public void SetExtraSettings()
             {
-                if (respectiveData.extra != null)
+                if (respectiveData != null && respectiveData.extra != null)
                 {
                     extraSettings = respectiveData.extra.Split(", ");
                 }
@@ -306,11 +338,14 @@ namespace TileGame
             private class CharacterSettings
             {
                 public float range, attackWaitTime, speed;
-                public CharacterSettings(float range, float attackWaitTime, float speed)
+                public int maxHP, attackTextureID;
+                public CharacterSettings(float range, float attackWaitTime, float speed, int HP, int attackTextureID)
                 {
                     this.range = range;
                     this.attackWaitTime = attackWaitTime;
                     this.speed = speed;
+                    maxHP = HP;
+                    this.attackTextureID = attackTextureID;
                 }
             }
             private CharacterSettings SetRange(string name)
@@ -318,23 +353,98 @@ namespace TileGame
                 switch (name)
                 {
                     case "person1":
-                        return new CharacterSettings(120, 1, 2);
+                        return new CharacterSettings(120, 1, 2, 5, 1);
+                    case "slime":
+                        return new CharacterSettings(60, 4, 1, 2, 2);
                 }
-                return new CharacterSettings(60, 0.5f, 1);
+                return new CharacterSettings(0, 0, 0, 0, 1);
             }
             private void ChaseTarget(Vector2 targetPosition)
             {
                 currentAnimation = AnimationType.walk;
-                velocity = GetNormalizedDirection(targetPosition, footPosition, speed);
+                if (MathF.Abs(velocity.X) < speed && MathF.Abs(velocity.Y) < speed)
+                    velocity += GetNormalizedDirection(targetPosition, footPosition, speed * 0.2f);
             }
             public static float GetDistance(Vector2 a, Vector2 b)
             {
                 return MathF.Sqrt(MathF.Pow(a.X - b.X, 2) + MathF.Pow(a.Y - b.Y, 2));
             }
+            private void BasicAttackBehaviour(GameTime gameTime)
+            {
+                if (GetDistance(position, g.player.position) > range && hasAttacked == false)
+                {
+                    ChaseTarget(g.player.footPosition);
+                }
+                else
+                {
+                    if (hasAttacked == false)
+                    {
+                        hasAttacked = true;
+                        isForward = true;
+                        currentAnimation = AnimationType.attack;
+                    }
+                    else if (needAttackRest)
+                    {
+                        if (gameTime.TotalGameTime.TotalSeconds - attackChargingTime > attackWaitTime)
+                        {
+                            needAttackRest = false;
+                            hasAttacked = false;
+                        }
+                    }
+                }
+            }
             public override void Update(GameTime gameTime)
             {
                 base.Update(gameTime);
-                if (name == "portal1")
+                if (maxHP != 0)
+                {
+                    if (currentColor == Color.White)
+                    {
+                        for (int i = 0; i < g.allyAttacks.Length; i++)
+                        {
+                            if (g.allyAttacks[i].isActive && Game1.IsWithinRectangle(position, g.allyAttacks[i].attackRect))
+                            {
+                                if (HP > 0)
+                                    HP--;
+                                currentColor = hitColor;
+                                invincibleTime = gameTime.TotalGameTime.TotalSeconds;
+                                velocity = -GetNormalizedDirection(g.allyAttacks[i].currentPosition, position) * 5;
+                                break;
+                            }
+                        }
+                    }
+                    if (currentColor == hitColor && gameTime.TotalGameTime.TotalSeconds - invincibleTime > 0.5f)
+                    {
+                        currentColor = Color.White;
+                    }
+                    if (HP < 1)
+                    {
+                        g.mapCharacters.Add(new CharacterBehaviour(g, 0, position));
+                        g.Components.Add(g.mapCharacters[g.mapCharacters.Count - 1]);
+                        Random rand = new Random();
+                        g.mapCharacters[g.mapCharacters.Count - 1].velocity = -GetNormalizedDirection(g.player.position, position) * ((float)rand.NextDouble() * 10);
+                        g.mapCharacters.Remove(this);
+                        g.Components.Remove(this);
+                        Dispose();
+                    }
+                    HPRect.X = (int)(position.X - center.X);
+                    HPRect.Y = (int)(position.Y - center.Y - 10);
+                    HPRect.Width = (int)((float)HP / (float)maxHP * frameRect.Width);
+                    barRect.X = HPRect.X - 1;
+                    barRect.Y = HPRect.Y - 1;
+                }
+                if (name == "coin")
+                {
+                    if (GetDistance(position, g.player.footPosition) < 50 && isDelayReady)
+                    {
+                        if (g.player.HP < g.player.maxHP)
+                            g.player.HP++;
+                        g.mapCharacters.Remove(this);
+                        g.Components.Remove(this);
+                        Dispose();
+                    }
+                }
+                else if (name == "portal1")
                 {
                     if (GetDistance(position, g.player.footPosition) < 42 && isDelayReady)
                     {
@@ -356,30 +466,11 @@ namespace TileGame
                 }
                 else if (name == "person1")
                 {
-                    if (GetDistance(position, g.player.position) > range && hasAttacked == false)
-                    {
-                        ChaseTarget(g.player.footPosition);
-                    }
-                    else
-                    {
-                        if (hasAttacked == false)
-                        {
-                            hasAttacked = true;
-                            currentAnimation = AnimationType.attack;
-                            int attackIndex = g.GetInactiveAttack(ref g.enemyAttacks);
-                            if (attackIndex != -1) {
-                                g.enemyAttacks[attackIndex].SetAttack(position, g.player.position, range);
-                            }
-                        }
-                        else if (needAttackRest)
-                        {
-                            if (gameTime.TotalGameTime.TotalSeconds - attackChargingTime > attackWaitTime)
-                            {
-                                needAttackRest = false;
-                                hasAttacked = false;
-                            }
-                        }
-                    }
+                    BasicAttackBehaviour(gameTime);
+                }
+                else if (name == "slime")
+                {
+                    BasicAttackBehaviour(gameTime);
                 }
             }
         }
