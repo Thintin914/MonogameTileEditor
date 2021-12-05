@@ -6,6 +6,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Diagnostics;
 using Microsoft.Xna.Framework.Input;
 using System.Threading.Tasks;
+using Microsoft.Xna.Framework.Audio;
 
 namespace TileGame
 {
@@ -16,19 +17,19 @@ namespace TileGame
         public CharacterAnimation[] allAnimations;
         public string fileName;
         public Texture2D texture;
-        public Rectangle frameRect;
-        private bool isAnimated, isForward = true, hasAttacked, needAttackRest;
+        public Rectangle frameRect, hitbox;
+        private bool isAnimated, isForward = true, hasAttacked, needAttackRest, isPush;
         public SpriteEffects flipside;
         private int currentFrame, poseStartFrame, poseEndFrame, totalFrame;
         public int ID, gridIndex;
         private double frameElapsedTime, attackChargingTime;
         private Game1 g;
         public float rotate;
-        private float range;
+        private float range, speed, attackRange;
         private int attackTextureID;
-        private Vector2 pastStandablePosition, footPosition, gridPosition;
+        private Vector2 pastStandablePosition, footPosition, gridPosition, reflectPosition;
         public Vector2 position, center, velocity;
-        public const int totalCharacter = 4;
+        public const int totalCharacter = 7;
         public const double frameTimeStep = 1000 / 8f;
 
         public Character(Game1 g, int ID, Vector2 position): base(g)
@@ -85,6 +86,22 @@ namespace TileGame
                     allAnimations[1] = new CharacterAnimation(AnimationType.walk, 4, 6);
                     allAnimations[2] = new CharacterAnimation(AnimationType.attack, 7, 9);
                     break;
+                case 4:
+                    fileName = "bigSlime";
+                    allAnimations[0] = new CharacterAnimation(AnimationType.idle, 1, 3);
+                    allAnimations[1] = new CharacterAnimation(AnimationType.walk, 1, 3);
+                    allAnimations[2] = new CharacterAnimation(AnimationType.attack, 4, 6);
+                    break;
+                case 5:
+                    fileName = "chest";
+                    allAnimations[0] = new CharacterAnimation(AnimationType.idle, 1, 1);
+                    break;
+                case 6:
+                    fileName = "rockman";
+                    allAnimations[0] = new CharacterAnimation(AnimationType.idle, 1, 2);
+                    allAnimations[1] = new CharacterAnimation(AnimationType.walk, 1, 2);
+                    allAnimations[2] = new CharacterAnimation(AnimationType.attack, 2, 5);
+                    break;
                 default:
                     fileName = "coin";
                     allAnimations[0] = new CharacterAnimation(AnimationType.idle, 1, 4);
@@ -103,6 +120,7 @@ namespace TileGame
             {
                 frameRect = new Rectangle(0, 0, texture.Width / totalFrame, texture.Height);
             }
+            hitbox = frameRect;
             center = new Vector2(frameRect.Width * 0.5f, frameRect.Height * 0.5f);
         }
         private Vector2 GetNormalizedDirection(Vector2 targetPosition, Vector2 selfPosition, float speed = -1)
@@ -176,26 +194,33 @@ namespace TileGame
         }
         private bool DoesGridContainsCharacter(int index)
         {
-            for (int i = 0; i < g.mapCharacters.Count; i++)
+            if (hasAttacked == false)
             {
-                if (g.mapCharacters[i] != this && g.mapCharacters[i].gridIndex == gridIndex)
+                for (int i = 0; i < g.mapCharacters.Count; i++)
                 {
-                    position = pastStandablePosition - velocity;
-                    SetGridIndex();
-                    return true;
+                    if (g.mapCharacters[i] != this && g.mapCharacters[i].gridIndex == index)
+                    {
+                        currentAnimation = AnimationType.attack;
+                        position = pastStandablePosition;
+                        isPush = true;
+                        hasAttacked = true;
+                        reflectPosition = g.mapCharacters[i].position;
+                        return true;
+                    }
                 }
             }
             return false;
         }
         private void SetGridIndex()
         {
-            footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.5f;
-            gridPosition = TileMap.ToGrid(position + velocity, g.currentMap.size);
+            footPosition = position + new Vector2(0, 1) * hitbox.Height * 0.5f;
+            gridPosition = TileMap.ToGrid(footPosition + velocity * speed, g.currentMap.size);
             gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
         }
         private bool IsMovable()
         {
-            Vector2 tempgridPosition = TileMap.ToGrid(position + velocity, g.currentMap.size);
+            Vector2 tempFootPosition = position + new Vector2(0, 1) * hitbox.Height * 0.5f;
+            Vector2 tempgridPosition = TileMap.ToGrid(tempFootPosition + velocity * speed, g.currentMap.size);
             int tempIndex = g.currentMap.GetTileIndexFromPosition(tempgridPosition.X, tempgridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
             if (tempIndex > -1 && tempIndex < g.currentMap.hitbox.Count)
             {
@@ -249,11 +274,10 @@ namespace TileGame
                             needAttackRest = true;
                             currentAnimation = AnimationType.idle;
                             attackChargingTime = gameTime.TotalGameTime.TotalSeconds;
-                            velocity = -GetNormalizedDirection(g.player.footPosition, position) * 3;
-                            int attackIndex = g.GetInactiveAttack(ref g.enemyAttacks);
-                            if (attackIndex != -1)
+                            velocity = -GetNormalizedDirection(reflectPosition, position) * speed;
+                            if (!isPush)
                             {
-                                g.enemyAttacks[attackIndex].SetAttack(position, g.player.position, range, attackTextureID);
+                                PerformAttack(fileName);
                             }
                         }
                     }
@@ -274,32 +298,75 @@ namespace TileGame
                     base.Update(gameTime);
                 }
             }
+            hitbox.X = (int)(position.X - center.X);
+            hitbox.Y = (int)(position.Y - center.Y);
         }
-
+        private void PerformAttack(string name)
+        {
+            switch (name)
+            {
+                case "bigSlime":
+                    Vector2 spawnPosition = position + GetNormalizedDirection(g.player.position, position) * g.currentMap.size;
+                    if (Game1.IsWithinRectangle(spawnPosition, g.mapRect))
+                    {
+                        g.mapCharacters.Add(new CharacterBehaviour(g, 3, spawnPosition));
+                        g.Components.Add(g.mapCharacters[g.mapCharacters.Count - 1]);
+                    }
+                    break;
+                case "rockman":
+                    Vector2[] allDirections = new Vector2[8];
+                    allDirections[0] = new Vector2(0, 1);
+                    allDirections[1] = new Vector2(0, -1);
+                    allDirections[2] = new Vector2(-1, 0);
+                    allDirections[3] = new Vector2(1, 0);
+                    allDirections[4] = new Vector2(-1, 1);
+                    allDirections[5] = new Vector2(1, 1);
+                    allDirections[6] = new Vector2(-1, -1);
+                    allDirections[7] = new Vector2(1, -1);
+                    int rockIndex = -1;
+                    for (int i = 0; i < allDirections.Length; i++)
+                    {
+                        rockIndex =  g.GetInactiveAttack(ref g.enemyAttacks);
+                        if (rockIndex != -1)
+                        {
+                            g.enemyAttacks[rockIndex].SetAttack(position, position + allDirections[i], attackRange, attackTextureID);
+                        }
+                    }
+                    break;
+                default:
+                    int attackIndex = g.GetInactiveAttack(ref g.enemyAttacks);
+                    if (attackIndex != -1)
+                    {
+                        g.enemyAttacks[attackIndex].SetAttack(position, g.player.position, attackRange, attackTextureID);
+                    }
+                    break;
+            }
+        }
         public class CharacterBehaviour: Character
         {
-            public string name;
-            private float attackWaitTime, speed;
+            private float attackWaitTime;
             public TileMap.CharacterData respectiveData;
             private string[] extraSettings;
             private KeyboardState lastKeyboardState;
-            private bool isDelayReady;
+            private bool isDelayReady, isAggressive, hasEnteredPortal;
             public Color currentColor = Color.White;
             private Color hitColor;
             public int maxHP, HP;
             private double invincibleTime;
             public Rectangle HPRect, barRect;
+            private SoundEffect hit1, hit2, money1, money2, money3, tick, deny;
 
             public CharacterBehaviour(Game1 g, int ID, Vector2 position, TileMap.CharacterData respectiveData = null): base (g, ID, position)
             {
-                name = fileName;
-                CharacterSettings tempSettings = SetRange(name);
+                CharacterSettings tempSettings = SetRange(fileName);
                 range = tempSettings.range;
                 attackWaitTime = tempSettings.attackWaitTime;
                 speed = tempSettings.speed;
                 maxHP = tempSettings.maxHP;
                 HP = tempSettings.maxHP;
                 attackTextureID = tempSettings.attackTextureID;
+                isAggressive = tempSettings.isAggressive;
+                attackRange = tempSettings.attackRange;
                 this.respectiveData = respectiveData;
                 if (respectiveData != null && respectiveData.extra != null)
                 {
@@ -312,6 +379,27 @@ namespace TileGame
                 barRect.Y -= 1;
                 barRect.Width += 2;
                 barRect.Height += 2;
+
+                if (maxHP > 0)
+                {
+                    hit1 = g.Content.Load<SoundEffect>("Sounds\\hit");
+                    hit2 = g.Content.Load<SoundEffect>("Sounds\\hit2");
+                }
+                if (fileName == "coin")
+                {
+                    money1 = g.Content.Load<SoundEffect>("Sounds\\money");
+                    money2 = g.Content.Load<SoundEffect>("Sounds\\money2");
+                    money3 = g.Content.Load<SoundEffect>("Sounds\\money3");
+                }
+                if (fileName == "portal1")
+                {
+                    tick = g.Content.Load<SoundEffect>("Sounds\\tick");
+                    deny = g.Content.Load<SoundEffect>("Sounds\\deny");
+                }
+                if (isAggressive)
+                {
+                    deny = g.Content.Load<SoundEffect>("Sounds\\deny");
+                }
                 PerformDelay();
             }
             private async void PerformDelay()
@@ -337,15 +425,18 @@ namespace TileGame
             }
             private class CharacterSettings
             {
-                public float range, attackWaitTime, speed;
+                public float range, attackWaitTime, speed, attackRange;
                 public int maxHP, attackTextureID;
-                public CharacterSettings(float range, float attackWaitTime, float speed, int HP, int attackTextureID)
+                public bool isAggressive;
+                public CharacterSettings(float range, float attackRange, float attackWaitTime, float speed, int HP, int attackTextureID, bool isAggressive = true)
                 {
                     this.range = range;
                     this.attackWaitTime = attackWaitTime;
                     this.speed = speed;
                     maxHP = HP;
                     this.attackTextureID = attackTextureID;
+                    this.isAggressive = isAggressive;
+                    this.attackRange = attackRange;
                 }
             }
             private CharacterSettings SetRange(string name)
@@ -353,11 +444,17 @@ namespace TileGame
                 switch (name)
                 {
                     case "person1":
-                        return new CharacterSettings(120, 1, 2, 5, 1);
+                        return new CharacterSettings(120, 240, 1, 2, 5, 1);
                     case "slime":
-                        return new CharacterSettings(60, 4, 1, 2, 2);
+                        return new CharacterSettings(60, 120, 0.5f, 1, 2, 2);
+                    case "bigSlime":
+                        return new CharacterSettings(150, 300, 0.3f, 1, 10, 2);
+                    case "chest":
+                        return new CharacterSettings(0, 0, 0, 0, 3, 0, false);
+                    case "rockman":
+                        return new CharacterSettings(150, 500, 5, 0.1f, 10, 2);
                 }
-                return new CharacterSettings(0, 0, 0, 0, 1);
+                return new CharacterSettings(0, 0, 0, 0, 0, 1, false);
             }
             private void ChaseTarget(Vector2 targetPosition)
             {
@@ -371,7 +468,7 @@ namespace TileGame
             }
             private void BasicAttackBehaviour(GameTime gameTime)
             {
-                if (GetDistance(position, g.player.position) > range && hasAttacked == false)
+                if (GetDistance(position, g.player.footPosition) > range && hasAttacked == false)
                 {
                     ChaseTarget(g.player.footPosition);
                 }
@@ -379,98 +476,223 @@ namespace TileGame
                 {
                     if (hasAttacked == false)
                     {
+                        deny.Play(0.2f, 0, 0);
+                        reflectPosition = g.player.position;
                         hasAttacked = true;
                         isForward = true;
                         currentAnimation = AnimationType.attack;
                     }
                     else if (needAttackRest)
                     {
-                        if (gameTime.TotalGameTime.TotalSeconds - attackChargingTime > attackWaitTime)
+                        if (isPush)
                         {
-                            needAttackRest = false;
-                            hasAttacked = false;
+                            if (gameTime.TotalGameTime.TotalSeconds - attackChargingTime > 0.3f)
+                            {
+                                needAttackRest = false;
+                                hasAttacked = false;
+                                isPush = false;
+                            }
+                        }
+                        else
+                        {
+                            if (gameTime.TotalGameTime.TotalSeconds - attackChargingTime > attackWaitTime)
+                            {
+                                needAttackRest = false;
+                                hasAttacked = false;
+                            }
                         }
                     }
                 }
             }
             public override void Update(GameTime gameTime)
             {
-                base.Update(gameTime);
-                if (maxHP != 0)
+                if (g.gameState == Game1.GameState.playMode)
                 {
-                    if (currentColor == Color.White)
+                    base.Update(gameTime);
+                    if (gridIndex < 0 || gridIndex > g.currentMap.x * g.currentMap.y - 1)
                     {
-                        for (int i = 0; i < g.allyAttacks.Length; i++)
+                        g.Components.Remove(this);
+                        g.mapCharacters.Remove(this);
+                        Dispose();
+                    }
+                    if (maxHP != 0)
+                    {
+                        if (currentColor == Color.White)
                         {
-                            if (g.allyAttacks[i].isActive && Game1.IsWithinRectangle(position, g.allyAttacks[i].attackRect))
+                            for (int i = 0; i < g.allyAttacks.Length; i++)
                             {
-                                if (HP > 0)
-                                    HP--;
-                                currentColor = hitColor;
-                                invincibleTime = gameTime.TotalGameTime.TotalSeconds;
-                                velocity = -GetNormalizedDirection(g.allyAttacks[i].currentPosition, position) * 5;
-                                break;
+                                if (g.allyAttacks[i].isActive && Game1.IsWithinRectangle(position, g.allyAttacks[i].attackRect))
+                                {
+                                    if (HP > 0)
+                                        HP--;
+                                    currentColor = hitColor;
+                                    invincibleTime = gameTime.TotalGameTime.TotalSeconds;
+                                    velocity = -GetNormalizedDirection(g.allyAttacks[i].currentPosition, position) * speed;
+                                    Random rand = new Random();
+                                    if (rand.Next(2) == 0)
+                                    {
+                                        hit1.Play(0.5f, 0, 0);
+                                    }
+                                    else
+                                    {
+                                        hit2.Play(0.5f, 0, 0);
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                        if (currentColor == hitColor && gameTime.TotalGameTime.TotalSeconds - invincibleTime > 0.5f)
+                        {
+                            currentColor = Color.White;
+                        }
+                        if (HP < 1)
+                        {
+                            Random rand = new Random();
+                            if (fileName == "chest")
+                            {
+                                for(int i = 0; i < 4; i++)
+                                {
+                                    Vector2 coinPosition = position + new Vector2(i, 0) * g.currentMap.size;
+                                    if (Game1.IsWithinRectangle(coinPosition, g.mapRect))
+                                    {
+                                        g.mapCharacters.Add(new CharacterBehaviour(g, 0, coinPosition));
+                                        g.Components.Add(g.mapCharacters[g.mapCharacters.Count - 1]);
+                                    }
+                                }
+                            }
+                            else
+                            {
+                                g.mapCharacters.Add(new CharacterBehaviour(g, 0, position));
+                                g.Components.Add(g.mapCharacters[g.mapCharacters.Count - 1]);
+                                g.mapCharacters[g.mapCharacters.Count - 1].velocity = -GetNormalizedDirection(g.player.position, position) * ((float)rand.NextDouble() * 5);
+                            }
+                            g.mapCharacters.Remove(this);
+                            g.Components.Remove(this);
+                            Dispose();
+                        }
+                        HPRect.X = (int)(position.X - center.X);
+                        HPRect.Y = (int)(position.Y - center.Y - 10);
+                        HPRect.Width = (int)((float)HP / (float)maxHP * frameRect.Width);
+                        barRect.X = HPRect.X - 1;
+                        barRect.Y = HPRect.Y - 1;
+                    }
+                    if (fileName == "coin")
+                    {
+                        if (GetDistance(position, g.player.footPosition) < 50 && isDelayReady)
+                        {
+                            g.score.AddScore(1);
+                            Random rand = new Random();
+                            int randIndex = rand.Next(4);
+                            if (randIndex == 0)
+                                money1.Play(0.5f, 0, 0);
+                            else if (randIndex == 1)
+                                money2.Play(0.5f, 0, 0);
+                            else if (randIndex == 2)
+                                money3.Play(0.5f, 0, 0);
+                            g.mapCharacters.Remove(this);
+                            g.Components.Remove(this);
+                            Dispose();
+                        }
+                    }
+                    else if (fileName == "portal1")
+                    {
+                        if (GetDistance(position, g.player.footPosition) < 42 && isDelayReady)
+                        {
+                            if (extraSettings.Length == 2)
+                            {
+                                hasEnteredPortal = true;
+                                g.hintWords = "Press Space to Enter";
+                                rotate = (rotate + 0.1f) % 360;
+                                KeyboardState ks = Keyboard.GetState();
+                                if (ks.IsKeyDown(Keys.Space) && !lastKeyboardState.IsKeyDown(Keys.Space))
+                                {
+                                    bool isClear = false;
+                                    int loopNumber = g.mapCharacters.Count;
+                                    int count = 0;
+                                    for (int i = 0; i < loopNumber; i++)
+                                    {
+                                        if (g.mapCharacters[i].isAggressive && g.mapCharacters[i].maxHP > 0)
+                                        {
+                                            break;
+                                        }
+                                        count++;
+                                    }
+                                    if (count == loopNumber)
+                                        isClear = true;
+                                    if (isClear)
+                                    {
+                                        tick.Play(0.5f, 0, 0);
+                                        g.CreateNewMap(extraSettings[0]);
+                                        int index = int.Parse(extraSettings[1]);
+                                        Vector2 playerPosition = new Vector2(g.currentMap.GetTileX(index), g.currentMap.GetTileY(index)) * g.currentMap.size + g.mapOffset;
+                                        g.player.position = playerPosition;
+                                        g.player.pastStandablePosition = playerPosition;
+                                    }
+                                    else
+                                    {
+                                        deny.Play(0.5f, 0, 0);
+                                    }
+                                }
+                                lastKeyboardState = ks;
+                            }
+                        }
+                        else if (hasEnteredPortal)
+                        {
+                            hasEnteredPortal = false;
+                            g.hintWords = null;
+                        }
+                    }
+                    else if (fileName == "person1")
+                    {
+                        BasicAttackBehaviour(gameTime);
+                    }
+                    else if (fileName == "slime")
+                    {
+                        BasicAttackBehaviour(gameTime);
+                    }
+                    else if (fileName == "bigSlime")
+                    {
+                        BasicAttackBehaviour(gameTime);
+                    }
+                    else if (fileName == "rockman")
+                    {
+                        if (GetDistance(position, g.player.footPosition) > range && hasAttacked == false)
+                        {
+                            currentAnimation = AnimationType.walk;
+                                velocity += GetNormalizedDirection(g.player.position, footPosition, speed * 0.2f);
+                        }
+                        else
+                        {
+                            if (hasAttacked == false)
+                            {
+                                deny.Play(0.2f, 0, 0);
+                                reflectPosition = g.player.position;
+                                hasAttacked = true;
+                                isForward = true;
+                                currentAnimation = AnimationType.attack;
+                            }
+                            else if (needAttackRest)
+                            {
+                                if (isPush)
+                                {
+                                    if (gameTime.TotalGameTime.TotalSeconds - attackChargingTime > 0.3f)
+                                    {
+                                        needAttackRest = false;
+                                        hasAttacked = false;
+                                        isPush = false;
+                                    }
+                                }
+                                else
+                                {
+                                    if (gameTime.TotalGameTime.TotalSeconds - attackChargingTime > attackWaitTime)
+                                    {
+                                        needAttackRest = false;
+                                        hasAttacked = false;
+                                    }
+                                }
                             }
                         }
                     }
-                    if (currentColor == hitColor && gameTime.TotalGameTime.TotalSeconds - invincibleTime > 0.5f)
-                    {
-                        currentColor = Color.White;
-                    }
-                    if (HP < 1)
-                    {
-                        g.mapCharacters.Add(new CharacterBehaviour(g, 0, position));
-                        g.Components.Add(g.mapCharacters[g.mapCharacters.Count - 1]);
-                        Random rand = new Random();
-                        g.mapCharacters[g.mapCharacters.Count - 1].velocity = -GetNormalizedDirection(g.player.position, position) * ((float)rand.NextDouble() * 10);
-                        g.mapCharacters.Remove(this);
-                        g.Components.Remove(this);
-                        Dispose();
-                    }
-                    HPRect.X = (int)(position.X - center.X);
-                    HPRect.Y = (int)(position.Y - center.Y - 10);
-                    HPRect.Width = (int)((float)HP / (float)maxHP * frameRect.Width);
-                    barRect.X = HPRect.X - 1;
-                    barRect.Y = HPRect.Y - 1;
-                }
-                if (name == "coin")
-                {
-                    if (GetDistance(position, g.player.footPosition) < 50 && isDelayReady)
-                    {
-                        if (g.player.HP < g.player.maxHP)
-                            g.player.HP++;
-                        g.mapCharacters.Remove(this);
-                        g.Components.Remove(this);
-                        Dispose();
-                    }
-                }
-                else if (name == "portal1")
-                {
-                    if (GetDistance(position, g.player.footPosition) < 42 && isDelayReady)
-                    {
-                        if (extraSettings.Length == 2)
-                        {
-                            KeyboardState ks = Keyboard.GetState();
-                            if (ks.IsKeyDown(Keys.Space) && !lastKeyboardState.IsKeyDown(Keys.Space))
-                            {
-                                g.CreateNewMap(extraSettings[0]);
-                                int index = int.Parse(extraSettings[1]);
-                                Vector2 playerPosition = new Vector2(g.currentMap.GetTileX(index), g.currentMap.GetTileY(index)) * g.currentMap.size + g.mapOffset;
-                                g.player.position = playerPosition;
-                                g.player.pastStandablePosition = playerPosition;
-                            }
-                            lastKeyboardState = ks;
-                        }
-                        rotate = (rotate + 0.1f) % 360;
-                    }
-                }
-                else if (name == "person1")
-                {
-                    BasicAttackBehaviour(gameTime);
-                }
-                else if (name == "slime")
-                {
-                    BasicAttackBehaviour(gameTime);
                 }
             }
         }

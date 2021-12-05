@@ -44,6 +44,30 @@
 /processorParam:TextureFormat=Compressed
 /build:BasicFont.spritefont
 
+#begin Characters/bigSlime.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Characters/bigSlime.png
+
+#begin Characters/chest.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Characters/chest.png
+
 #begin Characters/coin.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -68,6 +92,18 @@
 /processorParam:TextureFormat=Color
 /build:Characters/person1.png
 
+#begin Characters/person1Sit.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Characters/person1Sit.png
+
 #begin Characters/portal1.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -79,6 +115,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Characters/portal1.png
+
+#begin Characters/rockman.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Characters/rockman.png
 
 #begin Characters/slime.png
 /importer:TextureImporter
@@ -139,6 +187,66 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:GameEntities/tree1.png
+
+#begin Particles/particle1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Particles/particle1.png
+
+#begin Sounds/deny.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/deny.wav
+
+#begin Sounds/hit.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/hit.wav
+
+#begin Sounds/hit2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/hit2.wav
+
+#begin Sounds/money.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/money.wav
+
+#begin Sounds/money2.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/money2.wav
+
+#begin Sounds/money3.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/money3.wav
+
+#begin Sounds/PureImagination.mp3
+/importer:Mp3Importer
+/processor:SongProcessor
+/processorParam:Quality=Best
+/build:Sounds/PureImagination.mp3
+
+#begin Sounds/tick.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/tick.wav
 
 #begin Tiles/deepWater.png
 /importer:TextureImporter

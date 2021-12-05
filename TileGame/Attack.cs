@@ -61,7 +61,7 @@ namespace TileGame
             direction = Vector2.Normalize(endPosition - startPosition);
             currentFrame = 0;
             currentRange = 0;
-            totalRange = range;
+            totalRange = range + 40;
             attackRect = new Rectangle((int)(currentPosition.X - center.X - 5), (int)(currentPosition.Y - center.Y - 5), (int)(frameRect.Width + 10), frameRect.Height + 10);
             if (endPosition.X > startPosition.X)
             {

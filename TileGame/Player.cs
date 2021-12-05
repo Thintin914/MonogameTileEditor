@@ -5,6 +5,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Diagnostics;
+using Microsoft.Xna.Framework.Audio;
 
 namespace TileGame
 {
@@ -18,7 +19,8 @@ namespace TileGame
         private float speed = 3f;
         private MouseState lastMouseState;
 
-        public Rectangle frameRect, HPRect, barRect;
+        public bool isGameOver;
+        public Rectangle frameRect, HPRect, barRect, hitbox;
         private double frameElapsedTime, invincibleTime;
         private bool isForward = true, isAttacking;
         public Color currentColor;
@@ -28,6 +30,7 @@ namespace TileGame
         public int gridIndex, HP, maxHP = 3;
         public Character.AnimationType currentAnimation, lastAnimation;
         public Character.CharacterAnimation[] allAnimations;
+        private SoundEffect hit, deny;
         public Player(Game1 g, Vector2 position): base(g)
         {
             this.g = g;
@@ -45,6 +48,7 @@ namespace TileGame
             SetFrameDetails(currentAnimation);
             texture = g.Content.Load<Texture2D>("Characters\\person1");
             frameRect = new Rectangle(0, 0, texture.Width / (totalFrame + 1), texture.Height);
+            hitbox = frameRect;
             center = new Vector2(frameRect.Width * 0.5f, frameRect.Height * 0.5f);
             currentColor = Color.White;
             hitColor = new Color(255, 66, 148);
@@ -55,6 +59,9 @@ namespace TileGame
             barRect.Y -= 1;
             barRect.Width += 2;
             barRect.Height += 2;
+
+            hit = g.Content.Load<SoundEffect>("Sounds\\hit");
+            deny = g.Content.Load<SoundEffect>("Sounds\\deny");
         }
         private void SetFrameDetails(Character.AnimationType pose)
         {
@@ -107,142 +114,149 @@ namespace TileGame
         }
         public override void Update(GameTime gameTime)
         {
-            base.Update(gameTime);
-            frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
-            if (frameElapsedTime >= Character.frameTimeStep)
+            if (!isGameOver)
             {
-                if (currentColor == Color.White)
+                base.Update(gameTime);
+                frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
+                if (frameElapsedTime >= Character.frameTimeStep)
                 {
-                    for (int i = 0; i < g.enemyAttacks.Length; i++)
+                    if (currentColor == Color.White)
                     {
-                        if (g.enemyAttacks[i].isActive && Game1.IsWithinRectangle(position, g.enemyAttacks[i].attackRect))
+                        for (int i = 0; i < g.enemyAttacks.Length; i++)
                         {
-                            if (HP > 0)
-                                HP--;
-                            currentColor = hitColor;
-                            invincibleTime = gameTime.TotalGameTime.TotalSeconds;
-                            velocity = -GetNormalizedDirection(g.enemyAttacks[i].currentPosition, position) * speed;
-                            break;
+                            if (g.enemyAttacks[i].isActive && Game1.IsWithinRectangle(position, g.enemyAttacks[i].attackRect))
+                            {
+                                if (HP > 0)
+                                    HP--;
+                                currentColor = hitColor;
+                                invincibleTime = gameTime.TotalGameTime.TotalSeconds;
+                                velocity = -GetNormalizedDirection(g.enemyAttacks[i].currentPosition, position) * speed;
+                                hit.Play(0.5f, 0, 0);
+                                break;
+                            }
                         }
                     }
+
+                    if (currentAnimation != lastAnimation)
+                    {
+                        SetFrameDetails(currentAnimation);
+                        lastAnimation = currentAnimation;
+                    }
+                    if (currentFrame < poseStartFrame || currentFrame > poseEndFrame)
+                    {
+                        currentFrame = poseStartFrame;
+                    }
+                    if (isForward && currentFrame == poseEndFrame)
+                    {
+                        isForward = false;
+                        if (isAttacking)
+                        {
+                            currentAnimation = Character.AnimationType.idle;
+                            isAttacking = false;
+                            int attackIndex = g.GetInactiveAttack(ref g.allyAttacks);
+                            if (attackIndex != -1)
+                            {
+                                g.allyAttacks[attackIndex].SetAttack(position, g.mousePosition, 160, 1);
+                            }
+                        }
+                    }
+                    else if (!isForward && currentFrame == poseStartFrame)
+                    {
+                        isForward = true;
+                    }
+                    if (isForward)
+                    {
+                        currentFrame++;
+                    }
+                    else
+                    {
+                        currentFrame--;
+                    }
+                    frameRect.X = frameRect.Width * (currentFrame - 1);
+                    frameElapsedTime = 0;
+                    base.Update(gameTime);
                 }
 
-                if (currentAnimation != lastAnimation)
+                KeyboardState ks = Keyboard.GetState();
+                if (!isAttacking)
                 {
-                    SetFrameDetails(currentAnimation);
-                    lastAnimation = currentAnimation;
-                }
-                if (currentFrame < poseStartFrame || currentFrame > poseEndFrame)
-                {
-                    currentFrame = poseStartFrame;
-                }
-                if (isForward && currentFrame == poseEndFrame)
-                {
-                    isForward = false;
-                    if (isAttacking)
+                    MouseState ms = Mouse.GetState();
+                    if (ms.LeftButton == ButtonState.Pressed && lastMouseState.LeftButton != ButtonState.Pressed)
+                    {
+                        isAttacking = true;
+                        currentAnimation = Character.AnimationType.attack;
+                        isForward = true;
+                        if (position.X > g.mousePosition.X)
+                            flipside = SpriteEffects.FlipHorizontally;
+                        else
+                            flipside = SpriteEffects.None;
+                    }
+                    footPosition = position + new Vector2(0, 1) * hitbox.Height * 0.5f;
+                    gridPosition = TileMap.ToGrid(footPosition, g.currentMap.size);
+                    gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
+                    if (!isAttacking && Game1.IsWithinRectangle(footPosition + velocity * speed, g.mapRect) && g.currentMap.hitbox[gridIndex] != 1)
                     {
                         currentAnimation = Character.AnimationType.idle;
-                        isAttacking = false;
-                        int attackIndex = g.GetInactiveAttack(ref g.allyAttacks);
-                        if (attackIndex != -1)
+                        pastStandablePosition = position;
+                        if (ks.IsKeyDown(Keys.W))
                         {
-                            g.allyAttacks[attackIndex].SetAttack(position, g.mousePosition, 160, 1);
+                            currentAnimation = Character.AnimationType.walk;
+                            if (velocity.Y > -speed)
+                                velocity.Y -= speed * 0.5f;
+                        }
+                        if (ks.IsKeyDown(Keys.S))
+                        {
+                            currentAnimation = Character.AnimationType.walk;
+                            if (velocity.Y < speed)
+                                velocity.Y += speed * 0.5f;
+                        }
+                        if (ks.IsKeyDown(Keys.A))
+                        {
+                            currentAnimation = Character.AnimationType.walk;
+                            if (velocity.X > -speed)
+                                velocity.X -= speed * 0.5f;
+                            flipside = SpriteEffects.FlipHorizontally;
+                        }
+                        if (ks.IsKeyDown(Keys.D))
+                        {
+                            currentAnimation = Character.AnimationType.walk;
+                            if (velocity.X < speed)
+                                velocity.X += speed * 0.5f;
+                            flipside = SpriteEffects.None;
                         }
                     }
-                }
-                else if (!isForward && currentFrame == poseStartFrame)
-                {
-                    isForward = true;
-                }
-                if (isForward)
-                {
-                    currentFrame++;
-                }
-                else
-                {
-                    currentFrame--;
-                }
-                frameRect.X = frameRect.Width * (currentFrame - 1);
-                frameElapsedTime = 0;
-                base.Update(gameTime);
-            }
-
-            KeyboardState ks = Keyboard.GetState();
-            if (!isAttacking)
-            {
-                MouseState ms = Mouse.GetState();
-                if (ms.LeftButton == ButtonState.Pressed && lastMouseState.LeftButton != ButtonState.Pressed)
-                {
-                    isAttacking = true;
-                    currentAnimation = Character.AnimationType.attack;
-                    isForward = true;
-                    if (position.X > g.mousePosition.X)
-                        flipside = SpriteEffects.FlipHorizontally;
                     else
-                        flipside = SpriteEffects.None;
+                    {
+                        position = pastStandablePosition;
+                        velocity = Vector2.Zero;
+                    }
+                    lastMouseState = ms;
                 }
-                footPosition = position + new Vector2(0, 1) * frameRect.Height * 0.5f;
-                gridPosition = TileMap.ToGrid(footPosition, g.currentMap.size);
-                gridIndex = g.currentMap.GetTileIndexFromPosition(gridPosition.X, gridPosition.Y, g.mapOffset.X, g.mapOffset.Y);
-                if (!isAttacking  && Game1.IsWithinRectangle(footPosition + velocity * speed, g.mapRect) && g.currentMap.hitbox[gridIndex] != 1)
-                {
-                    currentAnimation = Character.AnimationType.idle;
-                    pastStandablePosition = position;
-                    if (ks.IsKeyDown(Keys.W))
-                    {
-                        currentAnimation = Character.AnimationType.walk;
-                        if (velocity.Y > -speed)
-                            velocity.Y -= speed * 0.5f;
-                    }
-                    if (ks.IsKeyDown(Keys.S))
-                    {
-                        currentAnimation = Character.AnimationType.walk;
-                        if (velocity.Y < speed)
-                            velocity.Y += speed * 0.5f;
-                    }
-                    if (ks.IsKeyDown(Keys.A))
-                    {
-                        currentAnimation = Character.AnimationType.walk;
-                        if (velocity.X > -speed)
-                            velocity.X -= speed * 0.5f;
-                        flipside = SpriteEffects.FlipHorizontally;
-                    }
-                    if (ks.IsKeyDown(Keys.D))
-                    {
-                        currentAnimation = Character.AnimationType.walk;
-                        if (velocity.X < speed)
-                            velocity.X += speed * 0.5f;
-                        flipside = SpriteEffects.None;
-                    }
-                }
-                else
-                {
-                    position = pastStandablePosition;
-                    velocity = Vector2.Zero;
-                }
-                lastMouseState = ms;
-            }
-            position += velocity;
-            velocity *= 0.9f;
-            if (MathF.Abs(velocity.X) < 0.1f)
-                velocity.X = 0;
-            if (MathF.Abs(velocity.Y) < 0.1f)
-                velocity.Y = 0;
+                position += velocity;
+                velocity *= 0.9f;
+                if (MathF.Abs(velocity.X) < 0.1f)
+                    velocity.X = 0;
+                if (MathF.Abs(velocity.Y) < 0.1f)
+                    velocity.Y = 0;
 
-            HPRect.X = (int)(position.X - center.X);
-            HPRect.Y = (int)(position.Y - center.Y - 10);
-            HPRect.Width = (int)((float)HP / (float)maxHP * frameRect.Width);
-            barRect.X = HPRect.X - 1;
-            barRect.Y = HPRect.Y - 1;
-            if (currentColor == hitColor && gameTime.TotalGameTime.TotalSeconds - invincibleTime > 1.5f)
-            {
-                currentColor = Color.White;
-            }
-            if (HP < 1)
-            {
-                HP = maxHP;
-                g.CreateNewMap(g.playerReviveMapName);
-                position = g.playerRevivePosition;
+                HPRect.X = (int)(position.X - center.X);
+                HPRect.Y = (int)(position.Y - center.Y - 10);
+                HPRect.Width = (int)((float)HP / (float)maxHP * hitbox.Width);
+                barRect.X = HPRect.X - 1;
+                barRect.Y = HPRect.Y - 1;
+                hitbox.X = (int)(position.X - center.X);
+                hitbox.Y = (int)(position.Y - center.Y);
+                if (currentColor == hitColor && gameTime.TotalGameTime.TotalSeconds - invincibleTime > 1.5f)
+                {
+                    currentColor = Color.White;
+                }
+                if (HP < 1)
+                {
+                    deny.Play(0.5f, 0, 0);
+                    HP = maxHP;
+                    g.CreateNewMap(g.playerReviveMapName);
+                    position = g.playerRevivePosition;
+                }
             }
         }
     }

@@ -6,6 +6,7 @@ using System;
 using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
+using Microsoft.Xna.Framework.Media;
 
 namespace TileGame
 {
@@ -18,9 +19,9 @@ namespace TileGame
         public Texture2D[] tileCostumes;
         private int totalTile = 10, storingTileID;
 
-        private Texture2D selectGrid, whiteRectangle;
+        private Texture2D selectGrid, whiteRectangle, winningTexture;
         public Vector2 mouseGridPosition, mapOffset, mousePosition, playerRevivePosition;
-        public string playerReviveMapName;
+        public string playerReviveMapName, hintWords;
         private ButtonState LastMouseButtonState = ButtonState.Released;
 
         public bool clicked, isWithinMap;
@@ -47,6 +48,13 @@ namespace TileGame
 
         public InputField inputField;
         private SpriteFont basicFont;
+
+        private Particle[] flowerParticles;
+        private Song PureImagination;
+        public Score score;
+        private double hintBracketWaitTime;
+        private bool isHintOpenBracket;
+        private double bracketTimeStep = 1000 / 2;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -67,22 +75,22 @@ namespace TileGame
             // TODO: Add your initialization logic here
             gameState = GameState.playMode;
 
-            UIButtons.Add(new Button(this, "ToPlayModeButton", "To Play Mode", new Vector2(5, 10)));
-            Components.Add(UIButtons[0]);
-            UIButtons.Add(new Button(this, "ToTileModeButton", "To Tile Mode", new Vector2(5, 50)));
-            Components.Add(UIButtons[1]);
-            UIButtons.Add(new Button(this, "ToHitboxModeButton", "To Hitbox Mode", new Vector2(5, 90)));
-            Components.Add(UIButtons[2]);
-            UIButtons.Add(new Button(this, "ToEntityModeButton", "To Entity Mode", new Vector2(5, 130)));
-            Components.Add(UIButtons[3]);
-            UIButtons.Add(new Button(this, "ToEntityRemoveModeButton", "To Entity Remove Mode", new Vector2(5, 170)));
-            Components.Add(UIButtons[4]);
-            UIButtons.Add(new Button(this, "ToCharacterMode", "To Character Mode", new Vector2(5, 210)));
-            Components.Add(UIButtons[5]);
-            UIButtons.Add(new Button(this, "ToCharacterRemoveMode", "To Character Remove Mode", new Vector2(5, 250)));
-            Components.Add(UIButtons[6]);
-            UIButtons.Add(new Button(this, "ToCreateNewMapMode", "To Create New Map Mode", new Vector2(5, 290)));
-            Components.Add(UIButtons[7]);
+            //UIButtons.Add(new Button(this, "ToPlayModeButton", "To Play Mode", new Vector2(5, 10)));
+            //Components.Add(UIButtons[0]);
+            //UIButtons.Add(new Button(this, "ToTileModeButton", "To Tile Mode", new Vector2(5, 50)));
+            //Components.Add(UIButtons[1]);
+            //UIButtons.Add(new Button(this, "ToHitboxModeButton", "To Hitbox Mode", new Vector2(5, 90)));
+            //Components.Add(UIButtons[2]);
+            //UIButtons.Add(new Button(this, "ToEntityModeButton", "To Entity Mode", new Vector2(5, 130)));
+            //Components.Add(UIButtons[3]);
+            //UIButtons.Add(new Button(this, "ToEntityRemoveModeButton", "To Entity Remove Mode", new Vector2(5, 170)));
+            //Components.Add(UIButtons[4]);
+            //UIButtons.Add(new Button(this, "ToCharacterMode", "To Character Mode", new Vector2(5, 210)));
+            //Components.Add(UIButtons[5]);
+            //UIButtons.Add(new Button(this, "ToCharacterRemoveMode", "To Character Remove Mode", new Vector2(5, 250)));
+            //Components.Add(UIButtons[6]);
+            //UIButtons.Add(new Button(this, "ToCreateNewMapMode", "To Create New Map Mode", new Vector2(5, 290)));
+            //Components.Add(UIButtons[7]);
 
             entityTable = new EntityTable(this);
             Components.Add(entityTable);
@@ -90,19 +98,26 @@ namespace TileGame
             characterTable = new CharacterTable(this);
             Components.Add(characterTable);
 
-            SetButtonActive(gameState, UIButtons[0].name);
+            //SetButtonActive(gameState, UIButtons[0].name);
 
-            enemyAttacks = new Attack[8];
+            enemyAttacks = new Attack[16];
             for(int i = 0; i < enemyAttacks.Length; i++)
             {
                 enemyAttacks[i] = new Attack(this);
                 Components.Add(enemyAttacks[i]);
             }
-            allyAttacks = new Attack[8];
+            allyAttacks = new Attack[4];
             for (int i = 0; i < allyAttacks.Length; i++)
             {
                 allyAttacks[i] = new Attack(this);
                 Components.Add(allyAttacks[i]);
+            }
+
+            flowerParticles = new Particle[16];
+            for (int i = 0; i < flowerParticles.Length; i++)
+            {
+                flowerParticles[i] = new Particle(this);
+                Components.Add(flowerParticles[i]);
             }
             base.Initialize();
         }
@@ -129,9 +144,16 @@ namespace TileGame
             tileCostumes[8] = Content.Load<Texture2D>("Tiles\\dirtPath");
             tileCostumes[9] = Content.Load<Texture2D>("Tiles\\deepWater");
 
-            CreateNewMap("1", 20, 20);
-            playerReviveMapName = "1";
-            playerRevivePosition = new Vector2(currentMap.GetTileX(101), currentMap.GetTileY(101)) * currentMap.size + mapOffset;
+            PureImagination = Content.Load<Song>("Sounds\\PureImagination");
+            MediaPlayer.Play(PureImagination);
+            MediaPlayer.IsRepeating = true;
+
+            winningTexture = Content.Load<Texture2D>("Characters\\person1Sit");
+            score = new Score(this);
+            Components.Add(score);
+            CreateNewMap("0", 10, 10);
+            playerReviveMapName = "0";
+            playerRevivePosition = new Vector2(currentMap.GetTileX(47), currentMap.GetTileY(47)) * currentMap.size + mapOffset;
             player = new Player(this, playerRevivePosition);
             Components.Add(player);
         }
@@ -193,6 +215,16 @@ namespace TileGame
         }
         public void CreateNewMap(string mapName, int x = 10, int y = 10)
         {
+            if (mapName == "0")
+                hintWords = "Press WASD to Move, Space to Interact";
+            else if (mapName == "1")
+                hintWords = "Mouse Click to Attack";
+            else if (mapName == "2")
+                hintWords = "Good Luck";
+            else if (mapName == "4")
+                hintWords = "You Beat The Game, Total Score is " + score.GetScore();
+            else
+                hintWords = null;
             ClearMap();
             if (File.Exists(mapName + ".txt"))
             {
@@ -216,6 +248,10 @@ namespace TileGame
         }
         private void SetMapOffset()
         {
+            mapOffset = new Vector2(GraphicsDevice.Viewport.Width * 0.5f - currentMap.x * currentMap.size * 0.5f, GraphicsDevice.Viewport.Height * 0.5f - currentMap.y * currentMap.size * 0.5f);
+            mapOffset.X = MathF.Round(mapOffset.X / currentMap.size) * currentMap.size;
+            mapOffset.Y = MathF.Round(mapOffset.Y / currentMap.size) * currentMap.size;
+            mapRect = new Rectangle((int)mapOffset.X, (int)mapOffset.Y, (int)(currentMap.size * (currentMap.x - 1)), (int)(currentMap.size * (currentMap.y - 1)));
             LoadMapEntity();
             int characterCount = currentMap.characterData.Count;
             for (int i = 0; i < characterCount; i++)
@@ -223,10 +259,6 @@ namespace TileGame
                 mapCharacters.Add(new Character.CharacterBehaviour(this, currentMap.characterData[i].ID, new Vector2(currentMap.characterData[i].x, currentMap.characterData[i].y), currentMap.characterData[i]));
                 Components.Add(mapCharacters[mapCharacters.Count - 1]);
             }
-            mapOffset = new Vector2(GraphicsDevice.Viewport.Width * 0.5f - currentMap.x * currentMap.size * 0.5f, GraphicsDevice.Viewport.Height * 0.5f - currentMap.y * currentMap.size * 0.5f);
-            mapOffset.X = MathF.Round(mapOffset.X / currentMap.size) * currentMap.size;
-            mapOffset.Y = MathF.Round(mapOffset.Y / currentMap.size) * currentMap.size;
-            mapRect = new Rectangle((int)mapOffset.X, (int)mapOffset.Y, (int)(currentMap.size * (currentMap.x - 1)), (int)(currentMap.size * (currentMap.y - 1)));
         }
         protected override void UnloadContent()
         {
@@ -243,6 +275,13 @@ namespace TileGame
             }
 
             // TODO: Add your update logic here
+            hintBracketWaitTime += gameTime.ElapsedGameTime.TotalMilliseconds;
+            if (hintBracketWaitTime >= bracketTimeStep)
+            {
+                hintBracketWaitTime = 0;
+                isHintOpenBracket = !isHintOpenBracket;
+            }
+
             MouseState ms = Mouse.GetState();
             KeyboardState ks = Keyboard.GetState();
             mousePosition.X = ms.X;
@@ -497,10 +536,9 @@ namespace TileGame
                 int removeIndex = -1;
                 for(int i = 0; i < mapCharacters.Count; i++)
                 {
-                    Rectangle removeRect = new Rectangle((int)(mapCharacters[i].position.X - mapCharacters[i].center.X), (int)(mapCharacters[i].position.Y - mapCharacters[i].center.Y), mapCharacters[i].frameRect.Width, mapCharacters[i].frameRect.Height);
-                    if (IsWithinRectangle(mousePosition, removeRect))
+                    if (IsWithinRectangle(mousePosition, mapCharacters[i].hitbox))
                     {
-                        _spriteBatch.Draw(whiteRectangle, removeRect, Color.Salmon);
+                        _spriteBatch.Draw(whiteRectangle, mapCharacters[i].hitbox, Color.Salmon);
                         removeIndex = i;
                         break;
                     }
@@ -543,10 +581,18 @@ namespace TileGame
                     _spriteBatch.Draw(plantingCharacter.texture, mouseGridPosition - plantingCharacter.center, plantingCharacter.frameRect, Color.White);
                 }
             }
-            _spriteBatch.Draw(whiteRectangle, mousePosition, null, Color.White, 0f, Vector2.Zero, 5, SpriteEffects.None, 0f);
             _spriteBatch.End();
 
             _spriteBatch.Begin(SpriteSortMode.FrontToBack);
+            if (hintWords != null)
+            {
+                if (isHintOpenBracket)
+                    _spriteBatch.DrawString(basicFont, "<  " + hintWords + "  >", new Vector2(GraphicsDevice.Viewport.Width * 0.5f - basicFont.MeasureString(hintWords + "<>    ").X * 0.5f, GraphicsDevice.Viewport.Height - 120), Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+                else
+                    _spriteBatch.DrawString(basicFont, "< " + hintWords + " >", new Vector2(GraphicsDevice.Viewport.Width * 0.5f - basicFont.MeasureString(hintWords + "<>  ").X * 0.5f, GraphicsDevice.Viewport.Height - 120), Color.White, 0, Vector2.Zero, 1, SpriteEffects.None, 1);
+
+            }
+            _spriteBatch.Draw(whiteRectangle, mousePosition, null, Color.White, 0f, Vector2.Zero, 5, SpriteEffects.None, 1);
             int totalObject = SetSortingLayers();
             //Draw All Map Objects
             int currentEntityIndex = 0;
@@ -568,13 +614,22 @@ namespace TileGame
                         _spriteBatch.Draw(whiteRectangle, mapCharacters[currentCharacterIndex].barRect, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, sortingLayers[i].layerDepth);
                         _spriteBatch.Draw(whiteRectangle, mapCharacters[currentCharacterIndex].HPRect, null, Color.Red, 0, Vector2.Zero, SpriteEffects.None, sortingLayers[i].layerDepth + 0.01f);
                     }
-                        currentCharacterIndex++;
+                    currentCharacterIndex++;
                 }
                 else if (sortingLayers[i].name == SortingLayer.ListName.player)
                 {
-                    _spriteBatch.Draw(player.texture, player.position - player.center, player.frameRect, player.currentColor, 0, Vector2.Zero, 1, player.flipside, sortingLayers[i].layerDepth);
-                    _spriteBatch.Draw(whiteRectangle, player.barRect, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, 1);
-                    _spriteBatch.Draw(whiteRectangle, player.HPRect, null, Color.Red, 0, Vector2.Zero, SpriteEffects.None, 1);
+                    if (!player.isGameOver)
+                    {
+                        _spriteBatch.Draw(player.texture, player.position - player.center, player.frameRect, player.currentColor, 0, Vector2.Zero, 1, player.flipside, sortingLayers[i].layerDepth);
+                        _spriteBatch.Draw(whiteRectangle, player.barRect, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, sortingLayers[i].layerDepth);
+                        _spriteBatch.Draw(whiteRectangle, player.HPRect, null, Color.Red, 0, Vector2.Zero, SpriteEffects.None, sortingLayers[i].layerDepth + 0.01f);
+                        if (currentMap.mapName == "4" && currentMap.tileCostume[currentMap.GetTileIndexFromPosition(player.position.X, player.position.Y, mapOffset.X, mapOffset.Y)] == 1)
+                            player.isGameOver = true;
+                    }
+                    else
+                    {
+                        _spriteBatch.Draw(winningTexture, player.position - player.center, null, Color.White, 0, Vector2.Zero, 1, player.flipside, sortingLayers[i].layerDepth);
+                    }
                 }
             }
             _spriteBatch.End();
