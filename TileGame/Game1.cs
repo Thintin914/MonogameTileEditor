@@ -75,22 +75,22 @@ namespace TileGame
             // TODO: Add your initialization logic here
             gameState = GameState.playMode;
 
-            //UIButtons.Add(new Button(this, "ToPlayModeButton", "To Play Mode", new Vector2(5, 10)));
-            //Components.Add(UIButtons[0]);
-            //UIButtons.Add(new Button(this, "ToTileModeButton", "To Tile Mode", new Vector2(5, 50)));
-            //Components.Add(UIButtons[1]);
-            //UIButtons.Add(new Button(this, "ToHitboxModeButton", "To Hitbox Mode", new Vector2(5, 90)));
-            //Components.Add(UIButtons[2]);
-            //UIButtons.Add(new Button(this, "ToEntityModeButton", "To Entity Mode", new Vector2(5, 130)));
-            //Components.Add(UIButtons[3]);
-            //UIButtons.Add(new Button(this, "ToEntityRemoveModeButton", "To Entity Remove Mode", new Vector2(5, 170)));
-            //Components.Add(UIButtons[4]);
-            //UIButtons.Add(new Button(this, "ToCharacterMode", "To Character Mode", new Vector2(5, 210)));
-            //Components.Add(UIButtons[5]);
-            //UIButtons.Add(new Button(this, "ToCharacterRemoveMode", "To Character Remove Mode", new Vector2(5, 250)));
-            //Components.Add(UIButtons[6]);
-            //UIButtons.Add(new Button(this, "ToCreateNewMapMode", "To Create New Map Mode", new Vector2(5, 290)));
-            //Components.Add(UIButtons[7]);
+            UIButtons.Add(new Button(this, "ToPlayModeButton", "To Play Mode", new Vector2(5, 10)));
+            Components.Add(UIButtons[0]);
+            UIButtons.Add(new Button(this, "ToTileModeButton", "To Tile Mode", new Vector2(5, 50)));
+            Components.Add(UIButtons[1]);
+            UIButtons.Add(new Button(this, "ToHitboxModeButton", "To Hitbox Mode", new Vector2(5, 90)));
+            Components.Add(UIButtons[2]);
+            UIButtons.Add(new Button(this, "ToEntityModeButton", "To Entity Mode", new Vector2(5, 130)));
+            Components.Add(UIButtons[3]);
+            UIButtons.Add(new Button(this, "ToEntityRemoveModeButton", "To Entity Remove Mode", new Vector2(5, 170)));
+            Components.Add(UIButtons[4]);
+            UIButtons.Add(new Button(this, "ToCharacterMode", "To Character Mode", new Vector2(5, 210)));
+            Components.Add(UIButtons[5]);
+            UIButtons.Add(new Button(this, "ToCharacterRemoveMode", "To Character Remove Mode", new Vector2(5, 250)));
+            Components.Add(UIButtons[6]);
+            UIButtons.Add(new Button(this, "ToCreateNewMapMode", "To Create New Map Mode", new Vector2(5, 290)));
+            Components.Add(UIButtons[7]);
 
             entityTable = new EntityTable(this);
             Components.Add(entityTable);
@@ -98,7 +98,7 @@ namespace TileGame
             characterTable = new CharacterTable(this);
             Components.Add(characterTable);
 
-            //SetButtonActive(gameState, UIButtons[0].name);
+            SetButtonActive(gameState, UIButtons[0].name);
 
             enemyAttacks = new Attack[16];
             for(int i = 0; i < enemyAttacks.Length; i++)
@@ -618,18 +618,9 @@ namespace TileGame
                 }
                 else if (sortingLayers[i].name == SortingLayer.ListName.player)
                 {
-                    if (!player.isGameOver)
-                    {
-                        _spriteBatch.Draw(player.texture, player.position - player.center, player.frameRect, player.currentColor, 0, Vector2.Zero, 1, player.flipside, sortingLayers[i].layerDepth);
-                        _spriteBatch.Draw(whiteRectangle, player.barRect, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, sortingLayers[i].layerDepth);
-                        _spriteBatch.Draw(whiteRectangle, player.HPRect, null, Color.Red, 0, Vector2.Zero, SpriteEffects.None, sortingLayers[i].layerDepth + 0.01f);
-                        if (currentMap.mapName == "4" && currentMap.tileCostume[currentMap.GetTileIndexFromPosition(player.position.X, player.position.Y, mapOffset.X, mapOffset.Y)] == 1)
-                            player.isGameOver = true;
-                    }
-                    else
-                    {
-                        _spriteBatch.Draw(winningTexture, player.position - player.center, null, Color.White, 0, Vector2.Zero, 1, player.flipside, sortingLayers[i].layerDepth);
-                    }
+                    _spriteBatch.Draw(player.texture, player.position - player.center, player.frameRect, player.currentColor, 0, Vector2.Zero, 1, player.flipside, sortingLayers[i].layerDepth);
+                    _spriteBatch.Draw(whiteRectangle, player.barRect, null, Color.White, 0, Vector2.Zero, SpriteEffects.None, sortingLayers[i].layerDepth);
+                    _spriteBatch.Draw(whiteRectangle, player.HPRect, null, Color.Red, 0, Vector2.Zero, SpriteEffects.None, sortingLayers[i].layerDepth + 0.01f);
                 }
             }
             _spriteBatch.End();

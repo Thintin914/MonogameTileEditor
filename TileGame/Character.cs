@@ -29,7 +29,7 @@ namespace TileGame
         private int attackTextureID;
         private Vector2 pastStandablePosition, footPosition, gridPosition, reflectPosition;
         public Vector2 position, center, velocity;
-        public const int totalCharacter = 7;
+        public const int totalCharacter = 8;
         public const double frameTimeStep = 1000 / 8f;
 
         public Character(Game1 g, int ID, Vector2 position): base(g)
@@ -102,6 +102,12 @@ namespace TileGame
                     allAnimations[1] = new CharacterAnimation(AnimationType.walk, 1, 2);
                     allAnimations[2] = new CharacterAnimation(AnimationType.attack, 2, 5);
                     break;
+                case 7:
+                    fileName = "flowerMonster";
+                    allAnimations[0] = new CharacterAnimation(AnimationType.idle, 1, 3);
+                    allAnimations[1] = new CharacterAnimation(AnimationType.walk, 4, 7);
+                    allAnimations[2] = new CharacterAnimation(AnimationType.attack, 4, 7);
+                    break;
                 default:
                     fileName = "coin";
                     allAnimations[0] = new CharacterAnimation(AnimationType.idle, 1, 4);
@@ -122,6 +128,9 @@ namespace TileGame
             }
             hitbox = frameRect;
             center = new Vector2(frameRect.Width * 0.5f, frameRect.Height * 0.5f);
+            SetGridIndex();
+            hitbox.X = (int)(position.X - center.X);
+            hitbox.Y = (int)(position.Y - center.Y);
         }
         private Vector2 GetNormalizedDirection(Vector2 targetPosition, Vector2 selfPosition, float speed = -1)
         {
@@ -198,7 +207,7 @@ namespace TileGame
             {
                 for (int i = 0; i < g.mapCharacters.Count; i++)
                 {
-                    if (g.mapCharacters[i] != this && g.mapCharacters[i].gridIndex == index)
+                    if (g.mapCharacters[i] != this && g.mapCharacters[i].gridIndex == index && g.mapCharacters[i].fileName != "coin")
                     {
                         currentAnimation = AnimationType.attack;
                         position = pastStandablePosition;
@@ -274,7 +283,8 @@ namespace TileGame
                             needAttackRest = true;
                             currentAnimation = AnimationType.idle;
                             attackChargingTime = gameTime.TotalGameTime.TotalSeconds;
-                            velocity = -GetNormalizedDirection(reflectPosition, position) * speed;
+                            if (speed != 0)
+                                velocity = -GetNormalizedDirection(reflectPosition, position) * 4;
                             if (!isPush)
                             {
                                 PerformAttack(fileName);
@@ -319,17 +329,14 @@ namespace TileGame
                     allDirections[1] = new Vector2(0, -1);
                     allDirections[2] = new Vector2(-1, 0);
                     allDirections[3] = new Vector2(1, 0);
-                    allDirections[4] = new Vector2(-1, 1);
-                    allDirections[5] = new Vector2(1, 1);
-                    allDirections[6] = new Vector2(-1, -1);
-                    allDirections[7] = new Vector2(1, -1);
+                    Vector2 offset = Vector2.Normalize(g.player.position - position);
                     int rockIndex = -1;
                     for (int i = 0; i < allDirections.Length; i++)
                     {
                         rockIndex =  g.GetInactiveAttack(ref g.enemyAttacks);
                         if (rockIndex != -1)
                         {
-                            g.enemyAttacks[rockIndex].SetAttack(position, position + allDirections[i], attackRange, attackTextureID);
+                            g.enemyAttacks[rockIndex].SetAttack(position, position + allDirections[i] + offset, attackRange, attackTextureID);
                         }
                     }
                     break;
@@ -452,7 +459,9 @@ namespace TileGame
                     case "chest":
                         return new CharacterSettings(0, 0, 0, 0, 3, 0, false);
                     case "rockman":
-                        return new CharacterSettings(150, 500, 5, 0.1f, 10, 2);
+                        return new CharacterSettings(250, 500, 5, 0.1f, 10, 2);
+                    case "flowerMonster":
+                        return new CharacterSettings(500, 500, 5, 0, 20, 2);
                 }
                 return new CharacterSettings(0, 0, 0, 0, 0, 1, false);
             }
@@ -521,23 +530,25 @@ namespace TileGame
                         {
                             for (int i = 0; i < g.allyAttacks.Length; i++)
                             {
-                                if (g.allyAttacks[i].isActive && Game1.IsWithinRectangle(position, g.allyAttacks[i].attackRect))
+                                if (g.allyAttacks[i].isActive)
                                 {
-                                    if (HP > 0)
-                                        HP--;
-                                    currentColor = hitColor;
-                                    invincibleTime = gameTime.TotalGameTime.TotalSeconds;
-                                    velocity = -GetNormalizedDirection(g.allyAttacks[i].currentPosition, position) * speed;
-                                    Random rand = new Random();
-                                    if (rand.Next(2) == 0)
-                                    {
-                                        hit1.Play(0.5f, 0, 0);
+                                    if (Game1.IsWithinRectangle(position, g.allyAttacks[i].attackRect) || Game1.IsWithinRectangle(footPosition, g.allyAttacks[i].attackRect)) {
+                                        if (HP > 0)
+                                            HP--;
+                                        currentColor = hitColor;
+                                        invincibleTime = gameTime.TotalGameTime.TotalSeconds;
+                                        velocity = -GetNormalizedDirection(g.allyAttacks[i].currentPosition, position) * speed;
+                                        Random rand = new Random();
+                                        if (rand.Next(2) == 0)
+                                        {
+                                            hit1.Play(0.5f, 0, 0);
+                                        }
+                                        else
+                                        {
+                                            hit2.Play(0.5f, 0, 0);
+                                        }
+                                        break;
                                     }
-                                    else
-                                    {
-                                        hit2.Play(0.5f, 0, 0);
-                                    }
-                                    break;
                                 }
                             }
                         }
@@ -689,6 +700,37 @@ namespace TileGame
                                         needAttackRest = false;
                                         hasAttacked = false;
                                     }
+                                }
+                            }
+                        }
+                    }
+                    else if (fileName == "flowerMonster")
+                    {
+                        if (hasAttacked == false)
+                        {
+                            deny.Play(0.2f, 0, 0);
+                            reflectPosition = g.player.position;
+                            hasAttacked = true;
+                            isForward = true;
+                            currentAnimation = AnimationType.attack;
+                        }
+                        else if (needAttackRest)
+                        {
+                            if (isPush)
+                            {
+                                if (gameTime.TotalGameTime.TotalSeconds - attackChargingTime > 0.3f)
+                                {
+                                    needAttackRest = false;
+                                    hasAttacked = false;
+                                    isPush = false;
+                                }
+                            }
+                            else
+                            {
+                                if (gameTime.TotalGameTime.TotalSeconds - attackChargingTime > attackWaitTime)
+                                {
+                                    needAttackRest = false;
+                                    hasAttacked = false;
                                 }
                             }
                         }

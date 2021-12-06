@@ -47,44 +47,38 @@ namespace TileGame
 
         public override void Update(GameTime gameTime)
         {
-            if (!g.player.isGameOver)
+            frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
+            if (frameElapsedTime >= Character.frameTimeStep)
             {
-                frameElapsedTime += gameTime.ElapsedGameTime.TotalMilliseconds;
-                if (frameElapsedTime >= Character.frameTimeStep)
+                if (isForward && currentFrame == totalFrame)
                 {
-                    if (isForward && currentFrame == totalFrame)
-                    {
-                        isForward = false;
-                    }
-                    else if (!isForward && currentFrame == 1)
-                    {
-                        isForward = true;
-                    }
-                    if (isForward)
-                    {
-                        currentFrame++;
-                    }
-                    else
-                    {
-                        currentFrame--;
-                    }
-                    frameRect.X = frameRect.Width * (currentFrame - 1);
-                    frameElapsedTime = 0;
-                    base.Update(gameTime);
+                    isForward = false;
                 }
+                else if (!isForward && currentFrame == 1)
+                {
+                    isForward = true;
+                }
+                if (isForward)
+                {
+                    currentFrame++;
+                }
+                else
+                {
+                    currentFrame--;
+                }
+                frameRect.X = frameRect.Width * (currentFrame - 1);
+                frameElapsedTime = 0;
+                base.Update(gameTime);
             }
         }
 
         public override void Draw(GameTime gameTime)
         {
-            if (!g.player.isGameOver)
-            {
-                base.Draw(gameTime);
-                spriteBatch.Begin();
-                spriteBatch.Draw(coinTexture, topRightCorner, frameRect, Color.White);
-                spriteBatch.DrawString(basicFont, message, messagePosition, Color.White);
-                spriteBatch.End();
-            }
+            base.Draw(gameTime);
+            spriteBatch.Begin();
+            spriteBatch.Draw(coinTexture, topRightCorner, frameRect, Color.White);
+            spriteBatch.DrawString(basicFont, message, messagePosition, Color.White);
+            spriteBatch.End();
         }
     }
 }
