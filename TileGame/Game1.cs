@@ -55,6 +55,8 @@ namespace TileGame
         private double hintBracketWaitTime;
         private bool isHintOpenBracket;
         private double bracketTimeStep = 1000 / 2;
+
+        public SpreadAttack[] spreadAttacks;
         public Game1()
         {
             _graphics = new GraphicsDeviceManager(this);
@@ -156,6 +158,13 @@ namespace TileGame
             playerRevivePosition = new Vector2(currentMap.GetTileX(47), currentMap.GetTileY(47)) * currentMap.size + mapOffset;
             player = new Player(this, playerRevivePosition);
             Components.Add(player);
+
+            spreadAttacks = new SpreadAttack[3];
+            for(int i = 0; i < spreadAttacks.Length; i++)
+            {
+                spreadAttacks[i] = new SpreadAttack(this);
+                Components.Add(spreadAttacks[i]);
+            }
         }
         private void LoadMapEntity()
         {
@@ -221,7 +230,7 @@ namespace TileGame
                 hintWords = "Mouse Click to Attack";
             else if (mapName == "2")
                 hintWords = "Good Luck";
-            else if (mapName == "4")
+            else if (mapName == "5")
                 hintWords = "You Beat The Game, Total Score is " + score.GetScore();
             else
                 hintWords = null;
@@ -242,6 +251,15 @@ namespace TileGame
             for(int i = 0; i < attacks.Length; i++)
             {
                 if ( attacks[i].isActive == false)
+                    return i;
+            }
+            return -1;
+        }
+        public int GetInactiveSpreadAttack(ref SpreadAttack[] spreadAttacks)
+        {
+            for (int i = 0; i < spreadAttacks.Length; i++)
+            {
+                if (spreadAttacks[i].isActive == false)
                     return i;
             }
             return -1;

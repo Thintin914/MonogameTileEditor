@@ -262,3 +262,5 @@ C:\Users\a1\Desktop\MonogameTileEditor\TileGame\bin\Debug\netcoreapp3.1\Content\
 C:\Users\a1\Desktop\MonogameTileEditor\TileGame\bin\Debug\netcoreapp3.1\Content\Sounds\PureImagination.xnb
 C:\Users\a1\Desktop\MonogameTileEditor\TileGame\bin\Debug\netcoreapp3.1\Content\Sounds\tick.xnb
 C:\Users\a1\Desktop\MonogameTileEditor\TileGame\bin\Debug\netcoreapp3.1\Content\Characters\flowerMonster.xnb
+C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\Characters\flowerMonster.xnb
+C:\Users\ttca9\source\repos\TileGame\TileGame\bin\Debug\netcoreapp3.1\Content\SpreadAttacks\spreadAttack1.xnb

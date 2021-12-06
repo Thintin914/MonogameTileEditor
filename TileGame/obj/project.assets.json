@@ -174,28 +174,24 @@
     ]
   },
   "packageFolders": {
-    "C:\\Users\\a1\\.nuget\\packages\\": {},
-    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {},
-    "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\": {}
+    "C:\\Users\\ttca9\\.nuget\\packages\\": {},
+    "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\a1\\Desktop\\MonogameTileEditor\\TileGame\\TileGame.csproj",
+      "projectUniqueName": "C:\\Users\\ttca9\\source\\repos\\TileGame\\TileGame\\TileGame.csproj",
       "projectName": "TileGame",
-      "projectPath": "C:\\Users\\a1\\Desktop\\MonogameTileEditor\\TileGame\\TileGame.csproj",
-      "packagesPath": "C:\\Users\\a1\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\a1\\Desktop\\MonogameTileEditor\\TileGame\\obj\\",
+      "projectPath": "C:\\Users\\ttca9\\source\\repos\\TileGame\\TileGame\\TileGame.csproj",
+      "packagesPath": "C:\\Users\\ttca9\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\ttca9\\source\\repos\\TileGame\\TileGame\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
-        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages",
-        "C:\\Program Files (x86)\\Microsoft\\Xamarin\\NuGet\\"
+        "C:\\Program Files\\dotnet\\sdk\\NuGetFallbackFolder"
       ],
       "configFilePaths": [
-        "C:\\Users\\a1\\AppData\\Roaming\\NuGet\\NuGet.Config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config",
-        "C:\\Program Files (x86)\\NuGet\\Config\\Xamarin.Offline.config"
+        "C:\\Users\\ttca9\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
         "netcoreapp3.1"
@@ -244,7 +240,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.400\\RuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\5.0.403\\RuntimeIdentifierGraph.json"
       }
     }
   }

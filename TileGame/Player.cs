@@ -134,6 +134,26 @@ namespace TileGame
                             }
                         }
                     }
+                    for(int i = 0; i < g.spreadAttacks.Length; i++)
+                    {
+                        if (g.spreadAttacks[i].isActive && g.spreadAttacks[i].spreadedTileIndex.Length > 0)
+                        {
+                            for(int k = 0; k < g.spreadAttacks[i].spreadedTileIndex.Length; k++)
+                            {
+                                Vector2 spreadAttackPosition = new Vector2(g.currentMap.GetTileX(g.spreadAttacks[i].spreadedTileIndex[k]), g.currentMap.GetTileY(g.spreadAttacks[i].spreadedTileIndex[k])) * g.currentMap.size + g.mapOffset - g.spreadAttacks[i].center;
+                                if (g.spreadAttacks[i].spreadedTileIndex[k] != 0 && Game1.IsWithinRectangle(spreadAttackPosition, hitbox))
+                                {
+                                    if (HP > 0)
+                                        HP--;
+                                    currentColor = hitColor;
+                                    invincibleTime = gameTime.TotalGameTime.TotalSeconds;
+                                    velocity = -GetNormalizedDirection(g.enemyAttacks[i].currentPosition, position) * speed;
+                                    hit.Play(0.5f, 0, 0);
+                                    break;
+                                }
+                            }
+                        }
+                    }
                 }
 
                 if (currentAnimation != lastAnimation)

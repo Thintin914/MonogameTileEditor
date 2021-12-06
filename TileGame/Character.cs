@@ -340,6 +340,13 @@ namespace TileGame
                         }
                     }
                     break;
+                case "flowerMonster":
+                    int flowerIndex = g.GetInactiveSpreadAttack(ref g.spreadAttacks);
+                    if (flowerIndex != -1)
+                    {
+                        g.spreadAttacks[flowerIndex].SetSpreadAttack(gridIndex, (int)attackRange, 1);
+                    }
+                    break;
                 default:
                     int attackIndex = g.GetInactiveAttack(ref g.enemyAttacks);
                     if (attackIndex != -1)
@@ -461,7 +468,7 @@ namespace TileGame
                     case "rockman":
                         return new CharacterSettings(250, 500, 5, 0.1f, 10, 2);
                     case "flowerMonster":
-                        return new CharacterSettings(500, 500, 5, 0, 20, 2);
+                        return new CharacterSettings(500, 30, 3.5f, 0, 10, 1);
                 }
                 return new CharacterSettings(0, 0, 0, 0, 0, 1, false);
             }
